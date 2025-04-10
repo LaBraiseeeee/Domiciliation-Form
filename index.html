@@ -1,362 +1,175 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Formulaire de Domiciliation</title>
+  <!-- Tailwind (version CDN la plus récente) -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
   <style>
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      margin: 0; padding: 0; box-sizing: border-box;
       font-family: 'Poppins', sans-serif;
     }
-    
     body {
       background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      min-height: 100vh; display: flex; justify-content: center; align-items: center;
       padding: 40px 20px;
     }
-    
     .container {
-      background-color: white;
-      border-radius: 16px;
+      background-color: white; border-radius: 16px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 900px;
-      overflow: hidden;
+      width: 100%; max-width: 900px; overflow: hidden;
     }
-    
     .form-header {
       background: linear-gradient(135deg, #3a7bd5 0%, #2456a8 100%);
-      padding: 25px 40px;
-      color: white;
+      padding: 25px 40px; color: white;
     }
-    
     .form-header h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 10px;
+      font-size: 28px; font-weight: 600; margin-bottom: 10px;
     }
-    
     .form-header p {
-      font-size: 16px;
-      opacity: 0.9;
+      font-size: 16px; opacity: 0.9;
     }
-    
     .step-progress {
-      display: flex;
-      justify-content: space-between;
-      margin: 30px 40px 0;
-      position: relative;
+      display: flex; justify-content: space-between;
+      margin: 30px 40px 0; position: relative;
     }
-    
     .step-progress::before {
-      content: '';
-      position: absolute;
-      top: 14px;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: #e0e0e0;
-      z-index: 1;
+      content: ''; position: absolute; top: 14px; left: 0;
+      width: 100%; height: 2px; background: #e0e0e0; z-index: 1;
     }
-    
     .progress-bar {
-      position: absolute;
-      top: 14px;
-      left: 0;
-      height: 2px;
-      background: #3a7bd5;
-      transition: width 0.3s ease;
-      z-index: 2;
+      position: absolute; top: 14px; left: 0; height: 2px;
+      background: #3a7bd5; transition: width 0.3s ease; z-index: 2;
     }
-    
     .step {
-      position: relative;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      position: relative; z-index: 3;
+      display: flex; flex-direction: column; align-items: center;
     }
-    
     .step-number {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: white;
-      border: 2px solid #e0e0e0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 600;
-      color: #888;
-      margin-bottom: 8px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: white; border: 2px solid #e0e0e0;
+      display: flex; justify-content: center; align-items: center;
+      font-weight: 600; color: #888; margin-bottom: 8px;
       transition: all 0.3s ease;
     }
-    
     .step.active .step-number {
-      border-color: #3a7bd5;
-      background: #3a7bd5;
-      color: white;
+      border-color: #3a7bd5; background: #3a7bd5; color: white;
     }
-    
     .step.completed .step-number {
-      border-color: #3a7bd5;
-      background: white;
-      color: #3a7bd5;
+      border-color: #3a7bd5; background: white; color: #3a7bd5;
     }
-    
     .step-title {
-      font-size: 14px;
-      color: #888;
-      transition: color 0.3s ease;
+      font-size: 14px; color: #888; transition: color 0.3s ease;
     }
-    
-    .step.active .step-title, 
+    .step.active .step-title,
     .step.completed .step-title {
       color: #3a7bd5;
     }
-    
-    .form-content {
-      padding: 40px;
-    }
-    
-    .form-step {
-      display: none;
-    }
-    
-    .form-step.active {
-      display: block;
-    }
-    
+    .form-content { padding: 40px; }
+    .form-step { display: none; }
+    .form-step.active { display: block; }
     .step-title-main {
-      font-size: 22px;
-      color: #333;
-      margin-bottom: 25px;
-      font-weight: 600;
+      font-size: 22px; color: #333; margin-bottom: 25px; font-weight: 600;
     }
-    
-    .form-group {
-      margin-bottom: 25px;
-    }
-    
+    .form-group { margin-bottom: 25px; }
     .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      margin: 0 -10px;
+      display: flex; flex-wrap: wrap; margin: 0 -10px;
     }
-    
-    .form-col {
-      flex: 1;
-      padding: 0 10px;
-      min-width: 200px;
-    }
-    
+    .form-col { flex: 1; padding: 0 10px; min-width: 200px; }
     label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: #555;
-      font-weight: 500;
+      display: block; margin-bottom: 8px; font-size: 14px;
+      color: #555; font-weight: 500;
     }
-    
     .required::after {
-      content: '*';
-      color: #e74c3c;
-      margin-left: 4px;
+      content: '*'; color: #e74c3c; margin-left: 4px;
     }
-    
     .form-control {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-      transition: all 0.3s ease;
-      background-color: #f9fafc;
+      width: 100%; padding: 12px 15px;
+      border: 1px solid #ddd; border-radius: 8px; font-size: 15px;
+      transition: all 0.3s ease; background-color: #f9fafc;
     }
-    
     .form-control:focus {
-      outline: none;
-      border-color: #3a7bd5;
-      box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1);
-      background-color: #fff;
+      outline: none; border-color: #3a7bd5;
+      box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1); background-color: #fff;
     }
-    
     textarea.form-control {
-      min-height: 100px;
-      resize: vertical;
+      min-height: 100px; resize: vertical;
     }
-    
     select.form-control {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
+      background-image: url("data:image/svg+xml,%3Csvg...%3E");
+      background-repeat: no-repeat; background-position: right 15px center;
       padding-right: 40px;
     }
-    
-    .file-input-container {
-      position: relative;
-    }
-    
+    .file-input-container { position: relative; }
     .file-input-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 15px;
-      border: 1px dashed #ddd;
-      border-radius: 8px;
-      background-color: #f9fafc;
-      cursor: pointer;
-      font-size: 15px;
-      color: #555;
+      display: flex; align-items: center; justify-content: center;
+      padding: 12px 15px; border: 1px dashed #ddd; border-radius: 8px;
+      background-color: #f9fafc; cursor: pointer; font-size: 15px; color: #555;
       transition: all 0.3s ease;
     }
-    
     .file-input-label:hover {
-      border-color: #3a7bd5;
-      background-color: rgba(58, 123, 213, 0.05);
+      border-color: #3a7bd5; background-color: rgba(58, 123, 213, 0.05);
     }
-    
-    .file-input {
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
+    .file-input { position: absolute; left: 0; top: 0;
+      opacity: 0; width: 100%; height: 100%; cursor: pointer;
     }
-    
     .helper-text {
-      display: block;
-      margin-top: 6px;
-      font-size: 12px;
-      color: #888;
+      display: block; margin-top: 6px; font-size: 12px; color: #888;
     }
-    
     .checkbox-group {
-      display: flex;
-      align-items: flex-start;
-      margin-top: 15px;
+      display: flex; align-items: flex-start; margin-top: 15px;
     }
-    
     .checkbox-input {
-      margin-top: 4px;
-      margin-right: 10px;
-      width: 18px;
-      height: 18px;
-      accent-color: #3a7bd5;
+      margin-top: 4px; margin-right: 10px; width: 18px;
+      height: 18px; accent-color: #3a7bd5;
     }
-    
-    .checkbox-label {
-      font-size: 14px;
-      color: #555;
-      line-height: 1.5;
-    }
-    
+    .checkbox-label { font-size: 14px; color: #555; line-height: 1.5; }
     .form-footer {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 40px;
-      padding-top: 20px;
+      display: flex; justify-content: space-between;
+      margin-top: 40px; padding-top: 20px;
       border-top: 1px solid #eee;
     }
-    
     .btn {
-      padding: 12px 25px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
+      padding: 12px 25px; border-radius: 8px;
+      font-size: 16px; font-weight: 500; cursor: pointer;
+      transition: all 0.3s ease; border: none;
     }
-    
     .btn-prev {
-      background-color: #f5f7fa;
-      color: #555;
+      background-color: #f5f7fa; color: #555;
     }
-    
-    .btn-prev:hover {
-      background-color: #e9ecf2;
-    }
-    
+    .btn-prev:hover { background-color: #e9ecf2; }
     .btn-next, .btn-submit {
       background: linear-gradient(135deg, #3a7bd5 0%, #2456a8 100%);
       color: white;
     }
-    
     .btn-next:hover, .btn-submit:hover {
       box-shadow: 0 5px 15px rgba(36, 86, 168, 0.3);
       transform: translateY(-2px);
     }
-    
-    .btn-submit {
-      min-width: 150px;
-    }
-    
+    .btn-submit { min-width: 150px; }
     .success-message {
-      text-align: center;
-      padding: 60px 40px;
-      display: none;
+      text-align: center; padding: 60px 40px; display: none;
     }
-    
     .success-icon {
-      width: 80px;
-      height: 80px;
-      background-color: #4CAF50;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 25px;
-      color: white;
-      font-size: 40px;
+      width: 80px; height: 80px; background-color: #4CAF50; border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      margin: 0 auto 25px; color: white; font-size: 40px;
     }
-    
     .success-title {
-      font-size: 24px;
-      color: #333;
-      margin-bottom: 15px;
-      font-weight: 600;
+      font-size: 24px; color: #333; margin-bottom: 15px; font-weight: 600;
     }
-    
     .success-text {
-      font-size: 16px;
-      color: #666;
-      max-width: 500px;
-      margin: 0 auto;
-      line-height: 1.6;
+      font-size: 16px; color: #666; max-width: 500px; margin: 0 auto; line-height: 1.6;
     }
-    
     @media (max-width: 768px) {
-      .form-row {
-        flex-direction: column;
-      }
-      
-      .form-col {
-        margin-bottom: 15px;
-      }
-      
-      .step-progress {
-        margin: 30px 20px 0;
-      }
-      
-      .step-title {
-        display: none;
-      }
-      
-      .form-content,
-      .form-header {
-        padding: 20px;
-      }
+      .form-row { flex-direction: column; }
+      .form-col { margin-bottom: 15px; }
+      .step-progress { margin: 30px 20px 0; }
+      .step-title { display: none; }
+      .form-content, .form-header { padding: 20px; }
     }
   </style>
 </head>
@@ -396,12 +209,10 @@
         <!-- Étape 1: Informations sur l'Entreprise -->
         <div class="form-step active" id="step-1">
           <h2 class="step-title-main">Informations sur l'Entreprise</h2>
-          
           <div class="form-group">
             <label for="raison-sociale" class="required">Raison Sociale</label>
             <input type="text" id="raison-sociale" class="form-control" required>
           </div>
-          
           <div class="form-row">
             <div class="form-col">
               <div class="form-group">
@@ -426,38 +237,33 @@
               <div class="form-group">
                 <label for="numero-imm">Numéro d'Immatriculation</label>
                 <input type="text" id="numero-imm" class="form-control">
-                <span class="helper-text">Facultatif si votre entreprise est déjà créée</span>
+                <span class="helper-text">Facultatif si déjà créée</span>
               </div>
             </div>
           </div>
-          
           <div class="form-group">
             <label for="objet-social" class="required">Objet Social / Activité</label>
             <textarea id="objet-social" class="form-control" required></textarea>
-            <span class="helper-text">Décrivez précisément l'activité de votre entreprise</span>
+            <span class="helper-text">Décrivez précisément l'activité</span>
           </div>
-          
           <div class="form-group">
-            <label for="adresse-siege" class="required">Adresse souhaitée (Siège Social)</label>
+            <label for="adresse-siege" class="required">Adresse (Siège Social)</label>
             <input type="text" id="adresse-siege" class="form-control" required>
           </div>
-          
           <div class="form-group">
             <label for="site-web">Site Web</label>
             <input type="url" id="site-web" class="form-control">
-            <span class="helper-text">Facultatif, pour information</span>
+            <span class="helper-text">Facultatif</span>
           </div>
-          
           <div class="form-footer">
             <div></div>
             <button type="button" class="btn btn-next" onclick="nextStep(1)">Suivant</button>
           </div>
         </div>
         
-        <!-- Étape 2: Informations sur le Représentant Légal -->
+        <!-- Étape 2: Représentant Légal -->
         <div class="form-step" id="step-2">
           <h2 class="step-title-main">Informations sur le Représentant Légal</h2>
-          
           <div class="form-row">
             <div class="form-col">
               <div class="form-group">
@@ -472,18 +278,14 @@
               </div>
             </div>
           </div>
-          
           <div class="form-group">
             <label for="date-naissance" class="required">Date de Naissance</label>
             <input type="date" id="date-naissance" class="form-control" required>
           </div>
-          
           <div class="form-group">
             <label for="adresse-personnelle" class="required">Adresse Personnelle</label>
             <input type="text" id="adresse-personnelle" class="form-control" required>
-            <span class="helper-text">Nécessaire pour le justificatif</span>
           </div>
-          
           <div class="form-row">
             <div class="form-col">
               <div class="form-group">
@@ -498,9 +300,8 @@
               </div>
             </div>
           </div>
-          
           <div class="form-group">
-            <label for="piece-identite" class="required">Pièce d'Identité (PDF, JPG...)</label>
+            <label for="piece-identite" class="required">Pièce d'Identité</label>
             <div class="file-input-container">
               <label for="piece-identite" class="file-input-label">
                 <i>📄</i> Choisir un fichier
@@ -509,18 +310,16 @@
             </div>
             <span class="helper-text">Format PDF ou image</span>
           </div>
-          
           <div class="form-group">
-            <label for="justificatif-domicile" class="required">Justificatif de Domicile du Représentant (moins de 3 mois)</label>
+            <label for="justificatif-domicile" class="required">Justificatif de Domicile (moins de 3 mois)</label>
             <div class="file-input-container">
               <label for="justificatif-domicile" class="file-input-label">
                 <i>📄</i> Choisir un fichier
               </label>
               <input type="file" id="justificatif-domicile" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required>
             </div>
-            <span class="helper-text">Document récent (moins de 3 mois)</span>
+            <span class="helper-text">Facture, quittance, etc.</span>
           </div>
-          
           <div class="form-group">
             <label for="attestation-honorabilite">Attestation d'Honorabilité</label>
             <div class="file-input-container">
@@ -529,25 +328,22 @@
               </label>
               <input type="file" id="attestation-honorabilite" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
             </div>
-            <span class="helper-text">Optionnel – upload si requis</span>
+            <span class="helper-text">Optionnel</span>
           </div>
-          
           <div class="form-footer">
             <button type="button" class="btn btn-prev" onclick="prevStep(2)">Précédent</button>
             <button type="button" class="btn btn-next" onclick="nextStep(2)">Suivant</button>
           </div>
         </div>
         
-        <!-- Étape 3: Informations Financières -->
+        <!-- Étape 3: Infos Financières -->
         <div class="form-step" id="step-3">
           <h2 class="step-title-main">Informations Financières</h2>
-          
           <div class="form-group">
             <label for="rib" class="required">RIB / IBAN</label>
             <input type="text" id="rib" class="form-control" required>
-            <span class="helper-text">Saisissez votre IBAN ou téléchargez votre RIB ci-dessous</span>
+            <span class="helper-text">Saisissez votre IBAN ou téléchargez un RIB</span>
           </div>
-          
           <div class="form-group">
             <label for="doc-bancaire">Document Bancaire</label>
             <div class="file-input-container">
@@ -556,9 +352,8 @@
               </label>
               <input type="file" id="doc-bancaire" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
             </div>
-            <span class="helper-text">Téléchargez votre RIB (optionnel si IBAN saisi ci-dessus)</span>
+            <span class="helper-text">RIB en PDF ou image</span>
           </div>
-          
           <div class="form-footer">
             <button type="button" class="btn btn-prev" onclick="prevStep(3)">Précédent</button>
             <button type="button" class="btn btn-next" onclick="nextStep(3)">Suivant</button>
@@ -568,7 +363,6 @@
         <!-- Étape 4: Détails de la Domiciliation -->
         <div class="form-step" id="step-4">
           <h2 class="step-title-main">Détails de la Domiciliation</h2>
-          
           <div class="form-group">
             <label for="type-domiciliation" class="required">Type de Domiciliation</label>
             <select id="type-domiciliation" class="form-control" required onchange="toggleDomiciliationFields()">
@@ -578,7 +372,6 @@
               <option value="societe">Société de domiciliation</option>
             </select>
           </div>
-          
           <div class="form-group domiciliation-field" style="display: none;">
             <label for="justificatif-lieu" class="required">Justificatif de Domicile (lieu de domiciliation)</label>
             <div class="file-input-container">
@@ -589,7 +382,6 @@
             </div>
             <span class="helper-text">Requis si domiciliation à domicile ou local</span>
           </div>
-          
           <div class="form-group domiciliation-field" style="display: none;">
             <label for="autorisation-proprietaire">Autorisation du Propriétaire</label>
             <div class="file-input-container">
@@ -600,7 +392,6 @@
             </div>
             <span class="helper-text">Si locataire ou justificatif sous un autre nom</span>
           </div>
-          
           <div class="form-group domiciliation-field" style="display: none;">
             <label for="contrat-bail">Contrat de Bail</label>
             <div class="file-input-container">
@@ -609,19 +400,17 @@
               </label>
               <input type="file" id="contrat-bail" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
             </div>
-            <span class="helper-text">Facultatif, si domiciliation dans un local</span>
+            <span class="helper-text">Facultatif (local commercial/professionnel)</span>
           </div>
-          
           <div class="form-footer">
             <button type="button" class="btn btn-prev" onclick="prevStep(4)">Précédent</button>
             <button type="button" class="btn btn-next" onclick="nextStep(4)">Suivant</button>
           </div>
         </div>
         
-        <!-- Étape 5: Acceptation des Conditions -->
+        <!-- Étape 5: Confirmation -->
         <div class="form-step" id="step-5">
           <h2 class="step-title-main">Acceptation des Conditions</h2>
-          
           <div class="form-group">
             <div class="checkbox-group">
               <input type="checkbox" id="accept-terms" class="checkbox-input" required>
@@ -630,16 +419,14 @@
               </label>
             </div>
           </div>
-          
           <div class="form-group">
             <div class="checkbox-group">
               <input type="checkbox" id="accept-data" class="checkbox-input" required>
               <label for="accept-data" class="checkbox-label">
-                J'accepte que mes données soient collectées et traitées conformément à la politique de confidentialité.
+                J'accepte que mes données soient collectées et traitées selon la politique de confidentialité.
               </label>
             </div>
           </div>
-          
           <div class="form-footer">
             <button type="button" class="btn btn-prev" onclick="prevStep(5)">Précédent</button>
             <button type="submit" class="btn btn-submit">Soumettre la demande</button>
@@ -652,24 +439,25 @@
         <div class="success-icon">✓</div>
         <h2 class="success-title">Demande envoyée avec succès !</h2>
         <p class="success-text">
-          Votre demande a été soumise avec succès. Nous vous contacterons sous 48h ouvrées.
+          Votre demande a été soumise. Nous vous contacterons sous 48h ouvrées.
         </p>
       </div>
     </div>
   </div>
-  
+
   <script>
     let currentStep = 1;
     const totalSteps = 5;
 
     function nextStep(step) {
+      // Validation
       const currentForm = document.getElementById(`step-${step}`);
       const requiredFields = currentForm.querySelectorAll('[required]');
       let isValid = true;
-      
+
       requiredFields.forEach(field => {
         if (field.tagName === 'INPUT' && field.type === 'file') {
-          // Pour simplifier, on ne valide pas les fichiers ici.
+          // Pas de validation stricte sur les fichiers (pour simplifier).
         } else if (!field.value.trim()) {
           isValid = false;
           field.style.borderColor = '#e74c3c';
@@ -677,82 +465,94 @@
           field.style.borderColor = '#ddd';
         }
       });
-      
+
       if (!isValid) {
         alert('Veuillez remplir tous les champs obligatoires.');
         return;
       }
-      
+
+      // Cache l'étape actuelle
       document.getElementById(`step-${step}`).classList.remove('active');
       currentStep = step + 1;
       document.getElementById(`step-${currentStep}`).classList.add('active');
+
       updateProgress();
-      
+
       const steps = document.querySelectorAll('.step');
       steps[step - 1].classList.add('completed');
       steps[currentStep - 1].classList.add('active');
       steps[step - 1].classList.remove('active');
-      
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
+
     function prevStep(step) {
       document.getElementById(`step-${step}`).classList.remove('active');
       currentStep = step - 1;
       document.getElementById(`step-${currentStep}`).classList.add('active');
       updateProgress();
-      
+
       const steps = document.querySelectorAll('.step');
       steps[step - 1].classList.remove('active');
       steps[currentStep - 1].classList.add('active');
       steps[currentStep - 1].classList.remove('completed');
-      
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
+
     function updateProgress() {
       const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
       document.querySelector('.progress-bar').style.width = `${progressPercentage}%`;
     }
-    
+
     function toggleDomiciliationFields() {
       const typeDomiciliation = document.getElementById('type-domiciliation').value;
-      const domiciliationFields = document.querySelectorAll('.domiciliation-field');
-      
-      domiciliationFields.forEach(field => {
+      const fields = document.querySelectorAll('.domiciliation-field');
+      fields.forEach(field => {
+        const fileInput = field.querySelector('input[type="file"]');
         if (typeDomiciliation === 'domicile' || typeDomiciliation === 'local') {
           field.style.display = 'block';
-          const input = field.querySelector('input');
-          if(input) {
-            input.required = true;
-          }
+          if (fileInput) fileInput.required = true;
         } else {
           field.style.display = 'none';
-          const input = field.querySelector('input');
-          if(input) {
-            input.required = false;
-          }
+          if (fileInput) fileInput.required = false;
         }
       });
     }
 
-    // Gestion de la soumission finale du formulaire
+    // Surveiller chaque file-input pour afficher le nom du fichier sélectionné
+    document.addEventListener('DOMContentLoaded', () => {
+      const allFileInputs = document.querySelectorAll('.file-input');
+      allFileInputs.forEach(input => {
+        const label = input.parentNode.querySelector('.file-input-label');
+        const originalText = label.textContent;
+        
+        input.addEventListener('change', () => {
+          if (input.files && input.files.length > 0) {
+            label.textContent = `Fichier : ${input.files[0].name}`;
+          } else {
+            label.textContent = originalText;
+          }
+        });
+      });
+    });
+
+    // Envoi final du formulaire vers Webhook n8n
     const form = document.getElementById('domiciliation-form');
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      // On utilise FormData pour gérer les fichiers
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
       const formData = new FormData(form);
-      
-      // Remplacer par l'URL de ton webhook n8n
+      // Remplace par ton vrai Webhook n8n
       const webhookURL = 'https://ton-n8n-webhook-url';
-      
+
       fetch(webhookURL, {
         method: 'POST',
         body: formData
       })
       .then(response => {
-        if(response.ok) {
-          document.getElementById('domiciliation-form').style.display = 'none';
+        if (response.ok) {
+          form.style.display = 'none';
           document.getElementById('success-message').style.display = 'block';
         } else {
           alert("Erreur lors de l'envoi du formulaire.");
