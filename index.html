@@ -1,567 +1,622 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Formulaire de Domiciliation</title>
-  <!-- Tailwind (version CDN la plus récente) -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+  <title>Formulaire - Étapes 1 & 2</title>
+  
+  <!-- Font Awesome (icônes) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    integrity="sha512-..."
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- Police : Nunito -->
+  <link 
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap"
+  />
+
   <style>
+    /* ------- RESET & BASE ------- */
     * {
-      margin: 0; padding: 0; box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
     body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-      min-height: 100vh; display: flex; justify-content: center; align-items: center;
-      padding: 40px 20px;
+      font-family: "Nunito", sans-serif;
+      background: #f5f7fa;
+      font-size: 16px;
+      line-height: 1.5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
     }
-    .container {
-      background-color: white; border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      width: 100%; max-width: 900px; overflow: hidden;
+
+    /* -------- CONTENEUR GLOBAL -------- */
+    .wrapper {
+      width: 100%;
+      max-width: 700px;
+      margin-top: 60px;
     }
-    .form-header {
-      background: linear-gradient(135deg, #3a7bd5 0%, #2456a8 100%);
-      padding: 25px 40px; color: white;
+
+    /* ------ BARRE D'ÉTAPES EN HAUT ------ */
+    .steps-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
     }
-    .form-header h1 {
-      font-size: 28px; font-weight: 600; margin-bottom: 10px;
+    .steps-container::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: #ddd;
+      top: 17px;
+      left: 0;
+      z-index: -1;
     }
-    .form-header p {
-      font-size: 16px; opacity: 0.9;
+    .step-item {
+      text-align: center;
+      position: relative;
     }
-    .step-progress {
-      display: flex; justify-content: space-between;
-      margin: 30px 40px 0; position: relative;
-    }
-    .step-progress::before {
-      content: ''; position: absolute; top: 14px; left: 0;
-      width: 100%; height: 2px; background: #e0e0e0; z-index: 1;
-    }
-    .progress-bar {
-      position: absolute; top: 14px; left: 0; height: 2px;
-      background: #3a7bd5; transition: width 0.3s ease; z-index: 2;
-    }
-    .step {
-      position: relative; z-index: 3;
-      display: flex; flex-direction: column; align-items: center;
-    }
-    .step-number {
-      width: 30px; height: 30px; border-radius: 50%;
-      background: white; border: 2px solid #e0e0e0;
-      display: flex; justify-content: center; align-items: center;
-      font-weight: 600; color: #888; margin-bottom: 8px;
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      color: #888;
+      font-weight: 500;
+      margin: 0 auto 8px auto;
       transition: all 0.3s ease;
-    }
-    .step.active .step-number {
-      border-color: #3a7bd5; background: #3a7bd5; color: white;
-    }
-    .step.completed .step-number {
-      border-color: #3a7bd5; background: white; color: #3a7bd5;
+      background: #fff;
     }
     .step-title {
-      font-size: 14px; color: #888; transition: color 0.3s ease;
+      font-size: 14px;
+      color: #aaa;
+      font-weight: 400;
+      transition: color 0.3s ease;
     }
-    .step.active .step-title,
-    .step.completed .step-title {
-      color: #3a7bd5;
+    .active .step-num {
+      border-color: #000;
+      background: #000;
+      color: #fff;
     }
-    .form-content { padding: 40px; }
-    .form-step { display: none; }
-    .form-step.active { display: block; }
-    .step-title-main {
-      font-size: 22px; color: #333; margin-bottom: 25px; font-weight: 600;
+    .active .step-title {
+      color: #000;
+      font-weight: 600;
     }
-    .form-group { margin-bottom: 25px; }
-    .form-row {
-      display: flex; flex-wrap: wrap; margin: 0 -10px;
+    .completed .step-num {
+      border-color: #000;
+      background: #fff;
+      color: #000;
     }
-    .form-col { flex: 1; padding: 0 10px; min-width: 200px; }
-    label {
-      display: block; margin-bottom: 8px; font-size: 14px;
-      color: #555; font-weight: 500;
+    .completed .step-title {
+      color: #000;
+      font-weight: 400;
     }
-    .required::after {
-      content: '*'; color: #e74c3c; margin-left: 4px;
+
+    /* ------- CONTENEUR FORMULAIRE ------- */
+    .form-container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+      max-width: 560px;
+      padding: 40px 30px;
+      margin: 0 auto;
+    }
+    .form-step {
+      display: none;
+    }
+    .form-step.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .input-container {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      font-size: 18px;
     }
     .form-control {
-      width: 100%; padding: 12px 15px;
-      border: 1px solid #ddd; border-radius: 8px; font-size: 15px;
-      transition: all 0.3s ease; background-color: #f9fafc;
+      width: 100%;
+      /* Laisser la place à une icône à gauche (48px) si nécessaire. */
+      padding: 14px 18px 14px 48px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.3s;
+      font-family: "Nunito", sans-serif;
+      text-align: left; /* Aligner le texte (placeholder) à gauche */
+    }
+    
+    /* Style spécifique pour le select */
+    select.form-control {
+      text-align-last: left; /* Aligne le texte sélectionné et non sélectionné */
+      -moz-text-align-last: left; /* Pour Firefox */
+      text-align: left;
+      padding-left: 18px; /* Pas d'icône pour le select, on réduit le padding gauche */
+      padding-right: 40px; /* Espace pour la flèche */
+      text-indent: 0;
+    }
+    
+    /* Pour l'option sélectionnée qui reste à gauche aussi */
+    select.form-control option {
+      text-align: left;
+    }
+    
+    .form-control::placeholder {
+      color: #aaa;
+      font-family: "Nunito", sans-serif;
+      font-size: 15px;
+      text-align: left; /* Bien aligné à gauche */
     }
     .form-control:focus {
-      outline: none; border-color: #3a7bd5;
-      box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1); background-color: #fff;
+      outline: none;
+      border-color: #3a7bd5;
+      background: #fafafa;
     }
-    textarea.form-control {
-      min-height: 100px; resize: vertical;
+    .error-wrap {
+      min-height: 12px;
+      margin-top: 2px;
     }
-    select.form-control {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg...%3E");
-      background-repeat: no-repeat; background-position: right 15px center;
-      padding-right: 40px;
+    .error-message {
+      font-size: 12px;
+      color: #e74c3c;
+      visibility: hidden;
     }
-    .file-input-container { position: relative; }
-    .file-input-label {
-      display: flex; align-items: center; justify-content: center;
-      padding: 12px 15px; border: 1px dashed #ddd; border-radius: 8px;
-      background-color: #f9fafc; cursor: pointer; font-size: 15px; color: #555;
-      transition: all 0.3s ease;
+    .error-message.visible {
+      visibility: visible;
     }
-    .file-input-label:hover {
-      border-color: #3a7bd5; background-color: rgba(58, 123, 213, 0.05);
-    }
-    .file-input { position: absolute; left: 0; top: 0;
-      opacity: 0; width: 100%; height: 100%; cursor: pointer;
-    }
-    .helper-text {
-      display: block; margin-top: 6px; font-size: 12px; color: #888;
-    }
-    .checkbox-group {
-      display: flex; align-items: flex-start; margin-top: 15px;
-    }
-    .checkbox-input {
-      margin-top: 4px; margin-right: 10px; width: 18px;
-      height: 18px; accent-color: #3a7bd5;
-    }
-    .checkbox-label { font-size: 14px; color: #555; line-height: 1.5; }
-    .form-footer {
-      display: flex; justify-content: space-between;
-      margin-top: 40px; padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
+
     .btn {
-      padding: 12px 25px; border-radius: 8px;
-      font-size: 16px; font-weight: 500; cursor: pointer;
-      transition: all 0.3s ease; border: none;
+      display: inline-block;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      padding: 16px 0;
+      font-size: 16px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-align: center;
     }
-    .btn-prev {
-      background-color: #f5f7fa; color: #555;
+    .btn:hover {
+      background: #333;
     }
-    .btn-prev:hover { background-color: #e9ecf2; }
-    .btn-next, .btn-submit {
-      background: linear-gradient(135deg, #3a7bd5 0%, #2456a8 100%);
-      color: white;
+    .btn-center {
+      margin-top: 12px;
     }
-    .btn-next:hover, .btn-submit:hover {
-      box-shadow: 0 5px 15px rgba(36, 86, 168, 0.3);
-      transform: translateY(-2px);
+    .btn-secondary {
+      background: #666;
+      margin-right: 10px;
     }
-    .btn-submit { min-width: 150px; }
-    .success-message {
-      text-align: center; padding: 60px 40px; display: none;
+    .btn-secondary:hover {
+      background: #555;
     }
-    .success-icon {
-      width: 80px; height: 80px; background-color: #4CAF50; border-radius: 50%;
-      display: flex; justify-content: center; align-items: center;
-      margin: 0 auto 25px; color: white; font-size: 40px;
+    .info-text {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      line-height: 1.4;
+      font-family: "Nunito", sans-serif;
     }
-    .success-title {
-      font-size: 24px; color: #333; margin-bottom: 15px; font-weight: 600;
+
+    /* 2 blocs dans la partie 2, chaque bloc est une "card" */
+    .form-block {
+      margin-bottom: 40px;
     }
-    .success-text {
-      font-size: 16px; color: #666; max-width: 500px; margin: 0 auto; line-height: 1.6;
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    @media (max-width: 768px) {
-      .form-row { flex-direction: column; }
-      .form-col { margin-bottom: 15px; }
-      .step-progress { margin: 30px 20px 0; }
-      .step-title { display: none; }
-      .form-content, .form-header { padding: 20px; }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+      font-family: "Nunito", sans-serif;
+    }
+
+    /* Enlever l'apparence native du select + icône chevron à droite */
+    select {
+      appearance: none;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+      background: #fff;
+    }
+    .select-arrow {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #888;
+      cursor: pointer;
+      pointer-events: none; /* Permet au clic de passer au select */
+    }
+    
+    /* Conteneur spécifique pour le select */
+    .select-container {
+      position: relative;
+    }
+
+    /* Radios en lignes distinctes, police identique */
+    .radio-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-family: "Nunito", sans-serif;
+      color: #444;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="form-header">
-      <h1>Formulaire de Domiciliation</h1>
-      <p>Complétez les étapes ci-dessous pour soumettre votre demande de domiciliation</p>
-      
-      <div class="step-progress">
-        <div class="progress-bar" style="width: 0%"></div>
-        <div class="step active">
-          <div class="step-number">1</div>
-          <div class="step-title">Entreprise</div>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-title">Représentant</div>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-title">Finances</div>
-        </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-title">Domiciliation</div>
-        </div>
-        <div class="step">
-          <div class="step-number">5</div>
-          <div class="step-title">Confirmation</div>
-        </div>
+  <div class="wrapper">
+    <!-- Barre d'étapes -->
+    <div class="steps-container" id="steps-bar">
+      <div class="step-item active" data-step="1">
+        <div class="step-num">1</div>
+        <div class="step-title">ADRESSES</div>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-num">2</div>
+        <div class="step-title">INFORMATIONS</div>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-num">3</div>
+        <div class="step-title">OPTIONS</div>
+      </div>
+      <div class="step-item" data-step="4">
+        <div class="step-num">4</div>
+        <div class="step-title">PAIEMENT</div>
+      </div>
+      <div class="step-item" data-step="5">
+        <div class="step-num">5</div>
+        <div class="step-title">CONTRAT</div>
       </div>
     </div>
-    
-    <div class="form-content">
-      <form id="domiciliation-form">
-        <!-- Étape 1: Informations sur l'Entreprise -->
-        <div class="form-step active" id="step-1">
-          <h2 class="step-title-main">Informations sur l'Entreprise</h2>
-          <div class="form-group">
-            <label for="raison-sociale" class="required">Raison Sociale</label>
-            <input type="text" id="raison-sociale" class="form-control" required>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <div class="form-group">
-                <label for="forme-juridique" class="required">Forme Juridique</label>
-                <select id="forme-juridique" class="form-control" required>
-                  <option value="">Sélectionnez une option</option>
-                  <option value="SARL">SARL</option>
-                  <option value="EURL">EURL</option>
-                  <option value="SAS">SAS</option>
-                  <option value="SASU">SASU</option>
-                  <option value="SA">SA</option>
-                  <option value="SNC">SNC</option>
-                  <option value="EI">EI</option>
-                  <option value="Micro-entreprise">Micro-entreprise</option>
-                  <option value="SCI">SCI</option>
-                  <option value="Association">Association</option>
-                  <option value="Autre">Autre</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-col">
-              <div class="form-group">
-                <label for="numero-imm">Numéro d'Immatriculation</label>
-                <input type="text" id="numero-imm" class="form-control">
-                <span class="helper-text">Facultatif si déjà créée</span>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="objet-social" class="required">Objet Social / Activité</label>
-            <textarea id="objet-social" class="form-control" required></textarea>
-            <span class="helper-text">Décrivez précisément l'activité</span>
-          </div>
-          <div class="form-group">
-            <label for="adresse-siege" class="required">Adresse (Siège Social)</label>
-            <input type="text" id="adresse-siege" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label for="site-web">Site Web</label>
-            <input type="url" id="site-web" class="form-control">
-            <span class="helper-text">Facultatif</span>
-          </div>
-          <div class="form-footer">
-            <div></div>
-            <button type="button" class="btn btn-next" onclick="nextStep(1)">Suivant</button>
-          </div>
-        </div>
+
+    <!-- Formulaire -->
+    <div class="form-container">
+      <form id="multi-step-form" novalidate>
         
-        <!-- Étape 2: Représentant Légal -->
-        <div class="form-step" id="step-2">
-          <h2 class="step-title-main">Informations sur le Représentant Légal</h2>
-          <div class="form-row">
-            <div class="form-col">
+        <!-- ÉTAPE 1 : ADRESSES (Ne pas modifier) -->
+        <div class="form-step active" data-step="1">
+          <!-- Email -->
+          <div class="form-group">
+            <div class="input-container">
+              <i class="fa-solid fa-envelope input-icon"></i>
+              <input
+                type="text"
+                id="email"
+                class="form-control"
+                placeholder="Votre email"
+              />
+            </div>
+            <div class="error-wrap">
+              <span class="error-message" id="error-email"></span>
+            </div>
+          </div>
+          <!-- Téléphone -->
+          <div class="form-group">
+            <div class="input-container">
+              <i class="fa-solid fa-phone input-icon"></i>
+              <input
+                type="text"
+                id="telephone"
+                class="form-control"
+                placeholder="Votre numéro de téléphone"
+              />
+            </div>
+            <div class="error-wrap">
+              <span class="error-message" id="error-telephone"></span>
+            </div>
+          </div>
+          <!-- Bouton Commencer -->
+          <div class="btn-center">
+            <button type="button" class="btn" id="btn-step1">COMMENCER</button>
+          </div>
+          <p class="info-text">
+            Vos informations sont privées et ne seront pas transmises à des tiers
+          </p>
+        </div>
+
+        <!-- ÉTAPE 2 : INFORMATIONS -->
+        <div class="form-step" data-step="2">
+          <!-- Bloc 1 : Forme + Nom société -->
+          <div class="form-block">
+            <div class="card">
+              <div class="card-title">Informations sur la société</div>
+              <!-- Sélecteur Forme juridique -->
               <div class="form-group">
-                <label for="prenom" class="required">Prénom</label>
-                <input type="text" id="prenom" class="form-control" required>
+                <div class="select-container">
+                  <select id="forme-juridique" class="form-control">
+                    <option value="">Sélectionnez une forme juridique</option>
+                    <option value="Micro-entreprise">Micro-entreprise</option>
+                    <option value="EI">EI</option>
+                    <option value="EURL">EURL</option>
+                    <option value="SASU">SASU</option>
+                    <option value="SAS">SAS</option>
+                    <option value="SARL">SARL</option>
+                    <option value="SNC">SNC</option>
+                    <option value="SCI">SCI</option>
+                    <option value="SCP">SCP</option>
+                    <option value="SCCV">SCCV</option>
+                  </select>
+                  <!-- Chevron à droite -->
+                  <i class="fa-solid fa-chevron-down select-arrow" id="chevron-select"></i>
+                </div>
+                <div class="error-wrap">
+                  <span class="error-message" id="error-forme"></span>
+                </div>
+              </div>
+              <!-- Nom société -->
+              <div class="form-group">
+                <div class="input-container">
+                  <i class="fa-solid fa-building input-icon"></i>
+                  <input
+                    type="text"
+                    id="nom-societe"
+                    class="form-control"
+                    placeholder="Nom de votre société"
+                  />
+                </div>
+                <div class="error-wrap">
+                  <span class="error-message" id="error-nomsociete"></span>
+                </div>
               </div>
             </div>
-            <div class="form-col">
+          </div>
+
+          <!-- Bloc 2 : Société déjà créée ? -->
+          <div class="form-block">
+            <div class="card">
+              <div class="card-title">Votre société est-elle déjà créée ?</div>
               <div class="form-group">
-                <label for="nom" class="required">Nom</label>
-                <input type="text" id="nom" class="form-control" required>
+                <div class="radio-group">
+                  <label>
+                    <input type="radio" name="societe-cree" value="oui" />
+                    Oui, je souhaite transférer le siège social
+                  </label>
+                  <label>
+                    <input type="radio" name="societe-cree" value="non" />
+                    Non, la société est en cours de création
+                  </label>
+                </div>
+                <div class="error-wrap">
+                  <span class="error-message" id="error-soccree"></span>
+                </div>
+              </div>
+              <!-- Champ SIREN, affiché si "oui" -->
+              <div class="form-group" id="siren-field" style="display:none; margin-top:5px;">
+                <div class="input-container">
+                  <i class="fa-solid fa-id-card input-icon"></i>
+                  <input
+                    type="text"
+                    id="num-siren"
+                    class="form-control"
+                    placeholder="Numéro de SIREN"
+                  />
+                </div>
+                <div class="error-wrap">
+                  <span class="error-message" id="error-siren"></span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="form-group">
-            <label for="date-naissance" class="required">Date de Naissance</label>
-            <input type="date" id="date-naissance" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label for="adresse-personnelle" class="required">Adresse Personnelle</label>
-            <input type="text" id="adresse-personnelle" class="form-control" required>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <div class="form-group">
-                <label for="telephone" class="required">Téléphone</label>
-                <input type="tel" id="telephone" class="form-control" required>
-              </div>
-            </div>
-            <div class="form-col">
-              <div class="form-group">
-                <label for="email" class="required">Email</label>
-                <input type="email" id="email" class="form-control" required>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="piece-identite" class="required">Pièce d'Identité</label>
-            <div class="file-input-container">
-              <label for="piece-identite" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="piece-identite" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required>
-            </div>
-            <span class="helper-text">Format PDF ou image</span>
-          </div>
-          <div class="form-group">
-            <label for="justificatif-domicile" class="required">Justificatif de Domicile (moins de 3 mois)</label>
-            <div class="file-input-container">
-              <label for="justificatif-domicile" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="justificatif-domicile" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required>
-            </div>
-            <span class="helper-text">Facture, quittance, etc.</span>
-          </div>
-          <div class="form-group">
-            <label for="attestation-honorabilite">Attestation d'Honorabilité</label>
-            <div class="file-input-container">
-              <label for="attestation-honorabilite" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="attestation-honorabilite" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <span class="helper-text">Optionnel</span>
-          </div>
-          <div class="form-footer">
-            <button type="button" class="btn btn-prev" onclick="prevStep(2)">Précédent</button>
-            <button type="button" class="btn btn-next" onclick="nextStep(2)">Suivant</button>
+
+          <!-- Boutons Étape 2 -->
+          <div class="btn-center" style="display:flex; justify-content:flex-end;">
+            <button type="button" class="btn-secondary btn" onclick="goToStep(1)">Précédent</button>
+            <button type="button" class="btn" id="btn-step2">SUIVANT</button>
           </div>
         </div>
-        
-        <!-- Étape 3: Infos Financières -->
-        <div class="form-step" id="step-3">
-          <h2 class="step-title-main">Informations Financières</h2>
-          <div class="form-group">
-            <label for="rib" class="required">RIB / IBAN</label>
-            <input type="text" id="rib" class="form-control" required>
-            <span class="helper-text">Saisissez votre IBAN ou téléchargez un RIB</span>
-          </div>
-          <div class="form-group">
-            <label for="doc-bancaire">Document Bancaire</label>
-            <div class="file-input-container">
-              <label for="doc-bancaire" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="doc-bancaire" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <span class="helper-text">RIB en PDF ou image</span>
-          </div>
-          <div class="form-footer">
-            <button type="button" class="btn btn-prev" onclick="prevStep(3)">Précédent</button>
-            <button type="button" class="btn btn-next" onclick="nextStep(3)">Suivant</button>
-          </div>
-        </div>
-        
-        <!-- Étape 4: Détails de la Domiciliation -->
-        <div class="form-step" id="step-4">
-          <h2 class="step-title-main">Détails de la Domiciliation</h2>
-          <div class="form-group">
-            <label for="type-domiciliation" class="required">Type de Domiciliation</label>
-            <select id="type-domiciliation" class="form-control" required onchange="toggleDomiciliationFields()">
-              <option value="">Sélectionnez une option</option>
-              <option value="domicile">À domicile</option>
-              <option value="local">Local commercial/professionnel</option>
-              <option value="societe">Société de domiciliation</option>
-            </select>
-          </div>
-          <div class="form-group domiciliation-field" style="display: none;">
-            <label for="justificatif-lieu" class="required">Justificatif de Domicile (lieu de domiciliation)</label>
-            <div class="file-input-container">
-              <label for="justificatif-lieu" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="justificatif-lieu" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <span class="helper-text">Requis si domiciliation à domicile ou local</span>
-          </div>
-          <div class="form-group domiciliation-field" style="display: none;">
-            <label for="autorisation-proprietaire">Autorisation du Propriétaire</label>
-            <div class="file-input-container">
-              <label for="autorisation-proprietaire" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="autorisation-proprietaire" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <span class="helper-text">Si locataire ou justificatif sous un autre nom</span>
-          </div>
-          <div class="form-group domiciliation-field" style="display: none;">
-            <label for="contrat-bail">Contrat de Bail</label>
-            <div class="file-input-container">
-              <label for="contrat-bail" class="file-input-label">
-                <i>📄</i> Choisir un fichier
-              </label>
-              <input type="file" id="contrat-bail" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
-            </div>
-            <span class="helper-text">Facultatif (local commercial/professionnel)</span>
-          </div>
-          <div class="form-footer">
-            <button type="button" class="btn btn-prev" onclick="prevStep(4)">Précédent</button>
-            <button type="button" class="btn btn-next" onclick="nextStep(4)">Suivant</button>
-          </div>
-        </div>
-        
-        <!-- Étape 5: Confirmation -->
-        <div class="form-step" id="step-5">
-          <h2 class="step-title-main">Acceptation des Conditions</h2>
-          <div class="form-group">
-            <div class="checkbox-group">
-              <input type="checkbox" id="accept-terms" class="checkbox-input" required>
-              <label for="accept-terms" class="checkbox-label">
-                J'accepte les conditions générales de domiciliation et certifie l'exactitude des informations fournies.
-              </label>
-            </div>
-          </div>
-          <div class="form-group">
-            <div class="checkbox-group">
-              <input type="checkbox" id="accept-data" class="checkbox-input" required>
-              <label for="accept-data" class="checkbox-label">
-                J'accepte que mes données soient collectées et traitées selon la politique de confidentialité.
-              </label>
-            </div>
-          </div>
-          <div class="form-footer">
-            <button type="button" class="btn btn-prev" onclick="prevStep(5)">Précédent</button>
-            <button type="submit" class="btn btn-submit">Soumettre la demande</button>
-          </div>
-        </div>
+
+        <!-- Étape 3, 4, 5... hors exemple -->
       </form>
-      
-      <!-- Message de succès -->
-      <div class="success-message" id="success-message">
-        <div class="success-icon">✓</div>
-        <h2 class="success-title">Demande envoyée avec succès !</h2>
-        <p class="success-text">
-          Votre demande a été soumise. Nous vous contacterons sous 48h ouvrées.
-        </p>
-      </div>
     </div>
   </div>
 
   <script>
+    /* ----------------- GESTION DES ÉTAPES ----------------- */
     let currentStep = 1;
-    const totalSteps = 5;
+    const stepsBar = document.querySelectorAll(".step-item");
+    const formSteps = document.querySelectorAll(".form-step");
 
-    function nextStep(step) {
-      // Validation
-      const currentForm = document.getElementById(`step-${step}`);
-      const requiredFields = currentForm.querySelectorAll('[required]');
-      let isValid = true;
-
-      requiredFields.forEach(field => {
-        if (field.tagName === 'INPUT' && field.type === 'file') {
-          // Pas de validation stricte sur les fichiers (pour simplifier).
-        } else if (!field.value.trim()) {
-          isValid = false;
-          field.style.borderColor = '#e74c3c';
-        } else {
-          field.style.borderColor = '#ddd';
+    function showStep(stepNum) {
+      formSteps.forEach(step => {
+        const st = parseInt(step.getAttribute("data-step"), 10);
+        step.classList.toggle("active", st === stepNum);
+      });
+      stepsBar.forEach(s => {
+        const stepData = parseInt(s.getAttribute("data-step"), 10);
+        s.classList.remove("active", "completed");
+        if (stepData < stepNum) {
+          s.classList.add("completed");
+        } else if (stepData === stepNum) {
+          s.classList.add("active");
         }
       });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
-      if (!isValid) {
-        alert('Veuillez remplir tous les champs obligatoires.');
-        return;
+    function goToStep(stepNum) {
+      currentStep = stepNum;
+      showStep(stepNum);
+    }
+
+    // Init => ÉTAPE 1
+    showStep(currentStep);
+
+    // ----------------- ÉTAPE 1 : Validation -----------------
+    const btnStep1 = document.getElementById("btn-step1");
+    const email = document.getElementById("email");
+    const phone = document.getElementById("telephone");
+    const errEmail = document.getElementById("error-email");
+    const errPhone = document.getElementById("error-telephone");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    btnStep1.addEventListener("click", () => {
+      errEmail.classList.remove("visible");
+      errPhone.classList.remove("visible");
+
+      let isValid = true;
+      const emailVal = email.value.trim();
+      const phoneVal = phone.value.trim();
+
+      // Vérif email
+      if (!emailVal) {
+        errEmail.textContent = "Ce champ est requis";
+        errEmail.classList.add("visible");
+        isValid = false;
+      } else if (!emailRegex.test(emailVal)) {
+        errEmail.textContent = "Adresse e-mail invalide";
+        errEmail.classList.add("visible");
+        isValid = false;
       }
 
-      // Cache l'étape actuelle
-      document.getElementById(`step-${step}`).classList.remove('active');
-      currentStep = step + 1;
-      document.getElementById(`step-${currentStep}`).classList.add('active');
+      // Vérif phone
+      if (!phoneVal) {
+        errPhone.textContent = "Ce champ est requis";
+        errPhone.classList.add("visible");
+        isValid = false;
+      }
 
-      updateProgress();
-
-      const steps = document.querySelectorAll('.step');
-      steps[step - 1].classList.add('completed');
-      steps[currentStep - 1].classList.add('active');
-      steps[step - 1].classList.remove('active');
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function prevStep(step) {
-      document.getElementById(`step-${step}`).classList.remove('active');
-      currentStep = step - 1;
-      document.getElementById(`step-${currentStep}`).classList.add('active');
-      updateProgress();
-
-      const steps = document.querySelectorAll('.step');
-      steps[step - 1].classList.remove('active');
-      steps[currentStep - 1].classList.add('active');
-      steps[currentStep - 1].classList.remove('completed');
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function updateProgress() {
-      const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
-      document.querySelector('.progress-bar').style.width = `${progressPercentage}%`;
-    }
-
-    function toggleDomiciliationFields() {
-      const typeDomiciliation = document.getElementById('type-domiciliation').value;
-      const fields = document.querySelectorAll('.domiciliation-field');
-      fields.forEach(field => {
-        const fileInput = field.querySelector('input[type="file"]');
-        if (typeDomiciliation === 'domicile' || typeDomiciliation === 'local') {
-          field.style.display = 'block';
-          if (fileInput) fileInput.required = true;
-        } else {
-          field.style.display = 'none';
-          if (fileInput) fileInput.required = false;
-        }
-      });
-    }
-
-    // Surveiller chaque file-input pour afficher le nom du fichier sélectionné
-    document.addEventListener('DOMContentLoaded', () => {
-      const allFileInputs = document.querySelectorAll('.file-input');
-      allFileInputs.forEach(input => {
-        const label = input.parentNode.querySelector('.file-input-label');
-        const originalText = label.textContent;
-        
-        input.addEventListener('change', () => {
-          if (input.files && input.files.length > 0) {
-            label.textContent = `Fichier : ${input.files[0].name}`;
-          } else {
-            label.textContent = originalText;
-          }
-        });
-      });
+      if (isValid) {
+        goToStep(2);
+      }
     });
 
-    // Envoi final du formulaire vers Webhook n8n
-    const form = document.getElementById('domiciliation-form');
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
+    // ----------------- ÉTAPE 2 : Validation + SIREN + Gestion du select -----------------
+    const btnStep2 = document.getElementById("btn-step2");
+    const formeJuridique = document.getElementById("forme-juridique");
+    const chevronSelect = document.getElementById("chevron-select");
+    const nomSociete = document.getElementById("nom-societe");
+    const radios = document.getElementsByName("societe-cree");
 
-      const formData = new FormData(form);
-      // Remplace par ton vrai Webhook n8n
-      const webhookURL = 'https://ton-n8n-webhook-url';
+    const errForme = document.getElementById("error-forme");
+    const errNomSociete = document.getElementById("error-nomsociete");
+    const errSocCree = document.getElementById("error-soccree");
+    const errSiren = document.getElementById("error-siren");
 
-      fetch(webhookURL, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (response.ok) {
-          form.style.display = 'none';
-          document.getElementById('success-message').style.display = 'block';
-        } else {
-          alert("Erreur lors de l'envoi du formulaire.");
+    const sirenField = document.getElementById("siren-field");
+    const numSiren = document.getElementById("num-siren");
+
+    // Mise à jour : Dès qu'une forme juridique est choisie, désactiver l'option par défaut
+    formeJuridique.addEventListener("change", function() {
+      if (this.value !== "") {
+        const defaultOption = this.querySelector('option[value=""]');
+        if (defaultOption) {
+          defaultOption.disabled = true;
         }
-      })
-      .catch(error => {
-        console.error("Erreur:", error);
-        alert("Erreur de connexion !");
-      });
+      }
+    });
+
+    // Gestion du clic sur le conteneur du select (mise à jour pour éviter un double déclenchement)
+    document.querySelector('.select-container').addEventListener('click', function(e) {
+      if (e.target.tagName.toLowerCase() !== 'select') {
+        formeJuridique.focus();
+      }
+    });
+
+    // Afficher/Masquer le champ SIREN en fonction du choix de la radio
+    function toggleSirenField() {
+      const radioOui = document.querySelector('input[name="societe-cree"][value="oui"]');
+      if (radioOui && radioOui.checked) {
+        sirenField.style.display = "block";
+      } else {
+        sirenField.style.display = "none";
+      }
+    }
+    radios.forEach(radio => {
+      radio.addEventListener("change", toggleSirenField);
+    });
+
+    btnStep2.addEventListener("click", () => {
+      // Reset erreurs
+      errForme.classList.remove("visible");
+      errNomSociete.classList.remove("visible");
+      errSocCree.classList.remove("visible");
+      errSiren.classList.remove("visible");
+
+      let isValid2 = true;
+
+      // Vérif forme juridique
+      if (!formeJuridique.value.trim()) {
+        errForme.textContent = "Ce champ est requis";
+        errForme.classList.add("visible");
+        isValid2 = false;
+      }
+      // Vérif nom
+      if (!nomSociete.value.trim()) {
+        errNomSociete.textContent = "Ce champ est requis";
+        errNomSociete.classList.add("visible");
+        isValid2 = false;
+      }
+
+      // Vérif radio
+      let checkedRadioValue = null;
+      for (let r of radios) {
+        if (r.checked) {
+          checkedRadioValue = r.value;
+          break;
+        }
+      }
+      if (!checkedRadioValue) {
+        errSocCree.textContent = "Veuillez sélectionner une option";
+        errSocCree.classList.add("visible");
+        isValid2 = false;
+      }
+
+      // Si "oui", le numéro de SIREN est obligatoire
+      if (checkedRadioValue === "oui") {
+        if (!numSiren.value.trim()) {
+          errSiren.textContent = "Vous devez renseigner votre numéro de SIREN";
+          errSiren.classList.add("visible");
+          isValid2 = false;
+        }
+      }
+
+      if (isValid2) {
+        alert("Étape 2 validée – aller à l'étape 3 !");
+        // goToStep(3);
+      }
+    });
+
+    // Appliquer un styling direct au select pour garantir l'alignement à gauche
+    document.addEventListener('DOMContentLoaded', function() {
+      const selectElement = document.getElementById('forme-juridique');
+      selectElement.style.textAlign = 'left';
+      selectElement.style.textAlignLast = 'left';
     });
   </script>
 </body>
