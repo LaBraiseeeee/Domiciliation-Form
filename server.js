@@ -45,7 +45,7 @@ app.post('/create-subscription', async (req, res) => {
 
 // (Optionnel) Endpoint pour les webhooks Stripe
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  // exemple si plus tard tu configures le webhook
+  // Exemple de gestion de webhook, à compléter plus tard si nécessaire
   res.json({ received: true });
 });
 
