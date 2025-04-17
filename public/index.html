@@ -1,319 +1,401 @@
-// --------------------------------------
-// 1) NAVIGATION & PRÉCHARGEMENT IMAGE
-// --------------------------------------
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulaire - Étapes 1 à 5</title>
 
-// Variables globales
-let currentPage = 1;
-const formSteps     = document.querySelectorAll(".form-step");
-const stepsBar      = document.getElementById("steps-bar");
-const formContainer = document.getElementById("form-container");
-let imageLoaded     = false;
+  <!-- Préchargement de l'image -->
+  <link
+    rel="preload"
+    as="image"
+    href="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg"
+    fetchpriority="high"
+  />
 
-const addressImage     = document.getElementById("address-image");
-const imagePlaceholder = document.getElementById("image-placeholder");
+  <!-- Font Awesome (icônes) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    integrity="sha512-…"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
 
-// Ajout de l’effet “shimmer” lors du chargement
-imagePlaceholder.classList.add("loading-shimmer");
+  <!-- Police : Nunito -->
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap"
+  />
 
-// Précharge l’image et cache le placeholder
-function preloadImage() {
-  const img = new Image();
-  img.onload = () => {
-    imageLoaded = true;
-    addressImage.classList.add("loaded");
-    imagePlaceholder.style.display = "none";
-  };
-  img.onerror = () => {
-    console.error("Erreur lors du chargement de l'image");
-    imagePlaceholder.innerHTML = "Impossible de charger l'image";
-  };
-  img.src = addressImage.src;
-}
+  <!-- Votre CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
 
-// Vérifie si l’image est déjà en cache
-function isImageCached(src) {
-  const img = new Image();
-  img.src = src;
-  return img.complete;
-}
+  <!-- Stripe.js (nécessaire pour mount des éléments) -->
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Barre d'étapes -->
+    <div class="steps-container step-narrow" id="steps-bar">
+      <div class="step-item active" data-step="1">
+        <div class="step-num">1</div>
+        <div class="step-title">ADRESSES</div>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-num">2</div>
+        <div class="step-title">INFORMATIONS</div>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-num">3</div>
+        <div class="step-title">OPTIONS</div>
+      </div>
+      <div class="step-item" data-step="4">
+        <div class="step-num">4</div>
+        <div class="step-title">PAIEMENT</div>
+      </div>
+      <div class="step-item" data-step="5">
+        <div class="step-num">5</div>
+        <div class="step-title">CONFIRMATION</div>
+      </div>
+    </div>
 
-// Affiche la page demandée et met à jour la barre d’étapes
-function showPage(pageNumber) {
-  formSteps.forEach(page => {
-    page.classList.toggle("active", parseInt(page.dataset.page, 10) === pageNumber);
-  });
+    <div class="form-container" id="form-container">
+      <form id="multi-step-form" novalidate>
+        <!-- Étape 1 : Email & téléphone -->
+        <div class="form-step active" data-page="1">
+          <div class="form-group">
+            <div class="input-container">
+              <i class="fa-solid fa-envelope input-icon"></i>
+              <input
+                type="text"
+                id="email"
+                class="form-control"
+                placeholder="Votre email"
+              />
+            </div>
+            <div class="error-wrap">
+              <span class="error-message" id="error-email"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="input-container">
+              <i class="fa-solid fa-phone input-icon"></i>
+              <input
+                type="text"
+                id="telephone"
+                class="form-control"
+                placeholder="Votre numéro de téléphone"
+              />
+            </div>
+            <div class="error-wrap">
+              <span class="error-message" id="error-telephone"></span>
+            </div>
+          </div>
+          <div class="btn-center">
+            <button type="button" class="btn" id="btn-step1">COMMENCER</button>
+          </div>
+          <p class="info-text">
+            Vos informations sont privées et ne seront pas transmises à des
+            tiers
+          </p>
+        </div>
 
-  let progressStep = 1;
-  if      (pageNumber === 1)                    progressStep = 1;
-  else if (pageNumber === 2 || pageNumber === 3) progressStep = 2;
-  else if (pageNumber === 4)                    progressStep = 3;
-  else if (pageNumber === 5)                    progressStep = 4;
-  else if (pageNumber === 6)                    progressStep = 5;
+        <!-- Étape 2 : Adresse de domiciliation -->
+        <div class="form-step" data-page="2">
+          <div class="address-card">
+            <h2 class="address-title">Votre adresse de domiciliation</h2>
+            <p class="address-subtitle">
+              83a Rue des Alliés, 42000 Saint‑Étienne<br />
+              L'Atelier Cail
+            </p>
+            <div class="image-placeholder" id="image-placeholder"></div>
+            <img
+              id="address-image"
+              src="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg"
+              alt="Atelier Cail"
+              class="address-image"
+            />
+          </div>
+          <div
+            class="btn-center"
+            style="display:flex; justify-content:flex-end; margin-top:20px;"
+          >
+            <button
+              type="button"
+              class="btn-secondary btn"
+              onclick="goToPage(1)"
+            >
+              Précédent
+            </button>
+            <button type="button" class="btn" id="btn-step2-part1">
+              SUIVANT
+            </button>
+          </div>
+        </div>
 
-  stepsBar.querySelectorAll(".step-item").forEach(item => {
-    const itemStep = parseInt(item.dataset.step, 10);
-    item.classList.remove("active","completed");
-    if      (itemStep < progressStep)   item.classList.add("completed");
-    else if (itemStep === progressStep) item.classList.add("active");
-  });
+        <!-- Étape 3 : Infos société -->
+        <div class="form-step" data-page="3">
+          <div class="form-block" style="margin-bottom:20px;">
+            <h2>Informations sur la société</h2>
+            <div class="form-group">
+              <div class="select-container">
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+                <select id="forme-juridique" class="form-control">
+                  <option value="">Sélectionnez une forme juridique</option>
+                  <option value="Micro-entreprise">Micro‑entreprise</option>
+                  <option value="EI">EI</option>
+                  <option value="EURL">EURL</option>
+                  <option value="SASU">SASU</option>
+                  <option value="SAS">SAS</option>
+                  <option value="SARL">SARL</option>
+                  <option value="SNC">SNC</option>
+                  <option value="SCI">SCI</option>
+                  <option value="SCP">SCP</option>
+                  <option value="SCCV">SCCV</option>
+                </select>
+              </div>
+              <div class="error-wrap">
+                <span class="error-message" id="error-forme"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="input-container">
+                <i class="fa-solid fa-building input-icon"></i>
+                <input
+                  type="text"
+                  id="nom-societe"
+                  class="form-control"
+                  placeholder="Nom de votre société"
+                />
+              </div>
+              <div class="error-wrap">
+                <span class="error-message" id="error-nomsociete"></span>
+              </div>
+              <div
+                id="micro-entreprise-message"
+                class="micro-entreprise-message"
+                style="display:none;"
+              >
+                Pour une micro‑entreprise, votre société s’appelle Prénom Nom.
+              </div>
+            </div>
+          </div>
+          <hr />
+          <div class="form-block">
+            <h2>Votre société est‑elle déjà créée ?</h2>
+            <div class="form-group">
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="societe-cree" value="oui" />
+                  Oui, je souhaite transférer le siège social
+                </label>
+                <label>
+                  <input type="radio" name="societe-cree" value="non" />
+                  Non, la société est en cours de création
+                </label>
+              </div>
+              <div class="error-wrap">
+                <span class="error-message" id="error-soccree"></span>
+              </div>
+            </div>
+            <div
+              class="form-group"
+              id="siren-field"
+              style="display:none; margin-top:10px;"
+            >
+              <div class="input-container">
+                <i class="fa-solid fa-id-card input-icon"></i>
+                <input
+                  type="text"
+                  id="num-siren"
+                  class="form-control"
+                  placeholder="Numéro de SIREN"
+                />
+              </div>
+              <div class="error-wrap">
+                <span class="error-message" id="error-siren"></span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="btn-center"
+            style="display:flex; justify-content:flex-end; margin-top:20px;"
+          >
+            <button
+              type="button"
+              class="btn-secondary btn"
+              onclick="goToPage(2)"
+            >
+              Précédent
+            </button>
+            <button type="button" class="btn" id="btn-step3">SUIVANT</button>
+          </div>
+        </div>
 
-  // Ajuste la largeur du conteneur selon l'étape
-  if (progressStep < 3) {
-    stepsBar.classList.replace("step-wide","step-narrow");
-    formContainer.style.maxWidth = "500px";
-  } else {
-    stepsBar.classList.replace("step-narrow","step-wide");
-    formContainer.style.maxWidth = "900px";
-  }
+        <!-- Étape 4 : Options -->
+        <div class="form-step" data-page="4">
+          <div class="options-container">
+            <div class="options-left-column">
+              <div class="options-block">
+                <label class="options-label"
+                  >Adresse de réexpédition du courrier</label
+                >
+                <input
+                  type="text"
+                  id="adresse-principale"
+                  class="options-input"
+                  placeholder="Adresse + Code postal + Ville"
+                />
+                <div id="error-message-adresse" class="error-message"></div>
+                <input
+                  type="text"
+                  id="complement-adresse"
+                  class="options-input"
+                  placeholder="Complément : bâtiment, étage..."
+                />
+              </div>
+              <div class="options-block">
+                <label class="options-label">Fréquence de réexpédition</label>
+                <div class="frequency-option selected">
+                  <div class="frequency-title">
+                    Scan numérique (mensuel) et réexpédition mensuelle sur
+                    demande
+                  </div>
+                  <div class="frequency-features">
+                    <div class="frequency-feature">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Scan complet du courrier</span>
+                    </div>
+                    <div class="frequency-feature">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Envoi par email</span>
+                    </div>
+                    <div class="frequency-feature">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Réexpédition mensuelle sur demande</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="options-right-column">
+              <div class="recap-card">
+                <h3 class="recap-title">RÉCAPITULATIF</h3>
+                <div class="recap-item">
+                  <span>Domiciliation – sans engagement</span>
+                  <span id="recap-domiciliation">15,00 €</span>
+                </div>
+                <div class="recap-item">
+                  <span>Réexpédition mensuelle sur demande</span>
+                  <span>Gratuit</span>
+                </div>
+                <div class="recap-total" id="recap-total-ht">
+                  <span id="total-label-ht">TOTAL MENSUEL HT</span>
+                  <span id="total-ht">15,00 €</span>
+                </div>
+                <div class="recap-total" id="recap-total-ttc">
+                  <span id="total-label-ttc">TOTAL MENSUEL TTC</span>
+                  <span id="total-ttc">18,00 €</span>
+                </div>
+              </div>
+              <div class="button-center">
+                <button type="button" id="btn-step4" class="options-button">
+                  CONTINUER
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
+        <!-- Étape 5 : Paiement -->
+        <div class="form-step" data-page="5">
+          <div class="options-container">
+            <div class="options-left-column" id="payment-options-container">
+              <h2>Fréquence de paiement</h2>
+              <div
+                class="frequency-option selected"
+                data-payment-price-ht="15.00"
+                data-payment-price-ttc="18.00"
+              >
+                <div class="frequency-title">Mensuelle</div>
+                <p>15,00 € / mois (soit 180,00 € / an)</p>
+              </div>
+              <div
+                class="frequency-option"
+                data-payment-price-ht="150.00"
+                data-payment-price-ttc="180.00"
+              >
+                <div class="frequency-title">Annuelle</div>
+                <p>150,00 € / an (soit 12,50 € / mois)</p>
+                <div class="annual-banner">2 mois offerts</div>
+              </div>
+              <div class="card-form-container">
+                <h3>Carte bancaire</h3>
+                <label>Numéro de carte</label>
+                <div id="card-number-element" class="stripe-input"></div>
+                <label>Date d'expiration</label>
+                <div id="card-expiry-element" class="stripe-input"></div>
+                <label>Code de sécurité</label>
+                <div id="card-cvc-element" class="stripe-input"></div>
+                <label>Pays</label>
+                <div class="select-container">
+                  <i class="fa-solid fa-chevron-down select-arrow"></i>
+                  <select id="card-country" class="form-control">
+                    <option value="">Choisissez un pays</option>
+                    <option value="FR">France</option>
+                    <option value="BE">Belgique</option>
+                    <option value="CH">Suisse</option>
+                    <option value="CA">Canada</option>
+                    <option value="US">États-Unis</option>
+                  </select>
+                </div>
+              </div>
+              <div id="card-errors" role="alert"></div>
+            </div>
+            <div class="options-right-column">
+              <div class="recap-card">
+                <h3 class="recap-title">RÉCAPITULATIF</h3>
+                <div class="recap-item">
+                  <span>Domiciliation – sans engagement</span>
+                  <span id="recap-domiciliation-final">15,00 €</span>
+                </div>
+                <div class="recap-item">
+                  <span>Réexpédition mensuelle sur demande</span>
+                  <span>Gratuit</span>
+                </div>
+                <div class="recap-total" id="recap-total-ht-final">
+                  <span id="total-label-ht-final">TOTAL MENSUEL HT</span>
+                  <span id="total-ht-final">15,00 €</span>
+                </div>
+                <div class="recap-total" id="recap-total-ttc-final">
+                  <span id="total-label-ttc-final">TOTAL MENSUEL TTC</span>
+                  <span id="total-ttc-final">18,00 €</span>
+                </div>
+              </div>
+              <div class="button-center">
+                <button type="button" id="btn-step5" class="options-button">
+                  PAIEMENT
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-// Passe à la page indiquée
-function goToPage(pageNumber) {
-  currentPage = pageNumber;
-  showPage(pageNumber);
-}
+        <!-- Étape 6 : Confirmation -->
+        <div class="form-step" data-page="6">
+          <h2>Paiement réussi !</h2>
+          <p>Voici les informations qui t'intéressent :</p>
+          <div class="recap-card">
+            <p>ID de souscription : <strong id="conf-sub-id"></strong></p>
+            <p>Prochaine facturation : <strong id="conf-next-bill"></strong></p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
-// Initialisation au chargement du DOM
-document.addEventListener("DOMContentLoaded", () => {
-  showPage(currentPage);
-  preloadImage();
-  if (isImageCached(addressImage.src)) {
-    imageLoaded = true;
-    addressImage.classList.add("loaded");
-    imagePlaceholder.style.display = "none";
-  }
-});
-
-// --------------------------------------
-// 2) VALIDATION & NAVIGATION ENTRE ÉTAPES
-// --------------------------------------
-
-// Étape 1 : email + téléphone
-const btnStep1 = document.getElementById("btn-step1");
-const email    = document.getElementById("email");
-const phone    = document.getElementById("telephone");
-const errEmail = document.getElementById("error-email");
-const errPhone = document.getElementById("error-telephone");
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-btnStep1.addEventListener("click", () => {
-  // Réinitialise les erreurs
-  [errEmail, errPhone].forEach(e => {
-    e.classList.remove("visible");
-    e.textContent = "";
-  });
-  let valid = true;
-
-  const eVal = email.value.trim();
-  if (!eVal) {
-    errEmail.textContent = "Ce champ est requis";
-    errEmail.classList.add("visible");
-    email.style.borderColor = "#e74c3c";
-    valid = false;
-  } else if (!emailRegex.test(eVal)) {
-    errEmail.textContent = "Adresse e-mail invalide";
-    errEmail.classList.add("visible");
-    email.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    email.style.borderColor = "#ccc";
-  }
-
-  const pVal = phone.value.trim();
-  if (!pVal) {
-    errPhone.textContent = "Ce champ est requis";
-    errPhone.classList.add("visible");
-    phone.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    phone.style.borderColor = "#ccc";
-  }
-
-  if (valid) goToPage(2);
-});
-
-// Étape 2 : passage direct à 3 (pas de champ à valider ici)
-const btnStep2 = document.getElementById("btn-step2-part1");
-btnStep2.addEventListener("click", () => goToPage(3));
-
-// Étape 3 : infos société
-const btnStep3        = document.getElementById("btn-step3");
-const formeJuridique  = document.getElementById("forme-juridique");
-const nomSociete      = document.getElementById("nom-societe");
-const radiosSocCree   = document.getElementsByName("societe-cree");
-const sirenField      = document.getElementById("siren-field");
-const numSiren        = document.getElementById("num-siren");
-const microMsg        = document.getElementById("micro-entreprise-message");
-const errForme        = document.getElementById("error-forme");
-const errNomSoc       = document.getElementById("error-nomsociete");
-const errSocCree      = document.getElementById("error-soccree");
-const errSiren        = document.getElementById("error-siren");
-
-// Affiche le message micro-entreprise
-formeJuridique.addEventListener("change", () => {
-  microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
-});
-
-btnStep3.addEventListener("click", () => {
-  // Réinitialise les erreurs
-  [errForme, errNomSoc, errSocCree, errSiren].forEach(e => {
-    e.classList.remove("visible");
-    e.textContent = "";
-  });
-  let valid = true;
-
-  // Forme juridique
-  if (!formeJuridique.value) {
-    errForme.textContent = "Ce champ est requis";
-    errForme.classList.add("visible");
-    formeJuridique.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    formeJuridique.style.borderColor = "#ccc";
-  }
-
-  // Nom société
-  if (!nomSociete.value.trim()) {
-    errNomSoc.textContent = "Ce champ est requis";
-    errNomSoc.classList.add("visible");
-    nomSociete.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    nomSociete.style.borderColor = "#ccc";
-  }
-
-  // Société créée
-  const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
-  if (!chosen) {
-    errSocCree.textContent = "Ce champ est requis";
-    errSocCree.classList.add("visible");
-    valid = false;
-  }
-
-  // Numéro SIREN si nécessaire
-  if (chosen === "oui" && !numSiren.value.trim()) {
-    errSiren.textContent = "Ce champ est requis";
-    errSiren.classList.add("visible");
-    numSiren.style.borderColor = "#e74c3c";
-    valid = false;
-  } else if (chosen === "oui") {
-    numSiren.style.borderColor = "#ccc";
-  }
-
-  if (valid) goToPage(4);
-});
-
-// Affiche/masque le champ SIREN
-radiosSocCree.forEach(radio => {
-  radio.addEventListener("change", () => {
-    sirenField.style.display = (radio.value === "oui" && radio.checked) ? "block" : "none";
-  });
-});
-
-// Étape 4 : adresse de réexpédition
-const btnStep4         = document.getElementById("btn-step4");
-const adressePrincipale = document.getElementById("adresse-principale");
-const errAdresse       = document.getElementById("error-message-adresse");
-
-btnStep4.addEventListener("click", () => {
-  let valid = true;
-  if (!adressePrincipale.value.trim()) {
-    errAdresse.textContent = "Ce champ est requis";
-    errAdresse.classList.add("visible");
-    adressePrincipale.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    errAdresse.classList.remove("visible");
-    adressePrincipale.style.borderColor = "#ddd";
-  }
-  if (valid) goToPage(5);
-});
-
-// Sélection de la fréquence (page 5)
-const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
-paymentOptions.forEach(opt => {
-  opt.addEventListener("click", function() {
-    paymentOptions.forEach(o => o.classList.remove("selected"));
-    this.classList.add("selected");
-
-    const ht  = this.dataset.paymentPriceHt;
-    const ttc = this.dataset.paymentPriceTtc;
-    const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
-    const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
-
-    document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
-    document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText        = parseFloat(ht ).toFixed(2).replace(".",",")+" €";
-    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",")+" €";
-    document.getElementById("recap-domiciliation-final").innerText =
-      parseFloat(ht).toFixed(2).replace(".",",")+" €";
-  });
-});
-
-// --------------------------------------
-// 3) INTÉGRATION STRIPE
-// --------------------------------------
-
-const stripe   = Stripe("pk_live_51QfLJMLEm2PALFULUxOdeLv5wodbKbxcGyNSg7Y8wxWAowohqOnxptD1mVIXwhYR6rjfanEOhEbYTcwHfKF1OhQL00qjGfTbhx");
-const elements = stripe.elements();
-const style    = {
-  base: {
-    color: "#32325d",
-    fontFamily: "Nunito, sans-serif",
-    fontSize: "16px",
-    "::placeholder": { color: "#ccc" }
-  },
-  invalid: { color: "#e74c3c" }
-};
-
-const cardNumber = elements.create("cardNumber", { style });
-const cardExpiry = elements.create("cardExpiry", { style });
-const cardCvc    = elements.create("cardCvc",    { style });
-
-cardNumber.mount("#card-number-element");
-cardExpiry.mount("#card-expiry-element");
-cardCvc.mount("#card-cvc-element");
-
-function handleCardError(event) {
-  document.getElementById("card-errors").textContent = event.error ? event.error.message : "";
-}
-cardNumber.on("change", handleCardError);
-cardExpiry.on("change", handleCardError);
-cardCvc.on("change", handleCardError);
-
-document.getElementById("btn-step5").addEventListener("click", async () => {
-  const country = document.getElementById("card-country").value || "FR";
-  const { token, error } = await stripe.createToken(cardNumber, {
-    name: "Nom Sur La Carte",
-    address_country: country
-  });
-  if (error) {
-    document.getElementById("card-errors").textContent = error.message;
-    return;
-  }
-
-  const plan        = document.querySelector(".frequency-option.selected").dataset.paymentPriceHt === "15.00" ? "mensuel" : "annuel";
-  const clientEmail = document.getElementById("email").value;
-
-  try {
-    const res = await fetch("https://domiciliation-form-production.up.railway.app/create-subscription", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ stripeToken: token.id, plan, email: clientEmail })
-    });
-    const data = await res.json();
-
-    if (data.subscription?.status === "active") {
-      goToPage(6);
-      document.getElementById("conf-sub-id").innerText   = data.subscription.id;
-      document.getElementById("conf-next-bill").innerText =
-        new Date(data.subscription.current_period_end*1000).toLocaleDateString();
-    } else {
-      throw new Error(data.error || `status ${data.subscription.status}`);
-    }
-  } catch (err) {
-    alert(`Erreur paiement : ${err.message}`);
-  }
-});
+  <!-- Votre unique bundle JS -->
+  <script src="js/script.js"></script>
+</body>
+</html>
