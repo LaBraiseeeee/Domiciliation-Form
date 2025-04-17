@@ -7,33 +7,41 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Utilise ta 
 // Permet à Express de parser le JSON dans les requêtes POST
 app.use(express.json());
 
+// Route de test pour vérifier que le serveur tourne
+app.get('/', (req, res) => {
+  res.send('API Domiciliation OK ✅');
+});
+
 // Endpoint pour créer la souscription
 app.post('/create-subscription', async (req, res) => {
-  // On s'attend à recevoir { stripeToken, plan, email } depuis ton code client
   const { stripeToken, plan, email } = req.body;
 
+  // Vérification du plan
+  if (!['mensuel', 'annuel'].includes(plan)) {
+    return res.status(400).json({ error: 'Plan non reconnu' });
+  }
+
   try {
-    // 1. Créer le client Stripe et y attacher la carte
+    // 1. Créer le client Stripe et y attacher la méthode de paiement
     const customer = await stripe.customers.create({
-      source: stripeToken,
-      email: email
+      email,
+      payment_method: stripeToken,
+      invoice_settings: {
+        default_payment_method: stripeToken
+      }
     });
 
     // 2. Déterminer le Price ID selon le plan sélectionné
-    let priceId;
-    if (plan === 'mensuel') {
-      priceId = 'price_mensuel_id';   // Remplace par ton Price ID mensuel
-    } else if (plan === 'annuel') {
-      priceId = 'price_annuel_id';    // Remplace par ton Price ID annuel
-    } else {
-      throw new Error('Plan non reconnu');
-    }
+    const priceId = plan === 'mensuel'
+      ? 'prod_S8o9mYh0vS7GKt'   // Price ID mensuel
+      : 'prod_S8oAAXO1DLC9sp';  // Price ID annuel
 
-    // 3. Créer la souscription sur Stripe
+    // 3. Créer la souscription sur Stripe, en forçant le paiement immédiat
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
-      expand: ['latest_invoice.payment_intent']
+      expand: ['latest_invoice.payment_intent'],
+      default_payment_method: stripeToken
     });
 
     res.json({ subscription });
@@ -45,7 +53,7 @@ app.post('/create-subscription', async (req, res) => {
 
 // (Optionnel) Endpoint pour les webhooks Stripe
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  // Exemple de gestion de webhook, à compléter plus tard si nécessaire
+  // À compléter : validation et gestion des événements Stripe
   res.json({ received: true });
 });
 
