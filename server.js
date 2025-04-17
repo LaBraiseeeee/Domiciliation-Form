@@ -2,30 +2,26 @@
 require('dotenv').config();        // Charge les variables d'environnement depuis .env
 const express = require('express');
 const app = express();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Utilise ta clé secrète de test
 
-// Initialise Stripe avec ta clé secrète de test (définie dans STRIPE_SECRET_KEY)
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-// Clé publique test à utiliser côté client (Stripe.js)
-// pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ
-
-app.use(express.json()); // pour parser le JSON des requêtes
+app.use(express.json()); // Pour parser le JSON des requêtes
 
 // Route de santé
 app.get('/', (req, res) => {
   res.send('API Domiciliation OK ✅');
 });
 
-// Création de la souscription
+// Endpoint pour créer la souscription
 app.post('/create-subscription', async (req, res) => {
   const { stripeToken, plan, email } = req.body;
 
+  // Vérification du plan
   if (!['mensuel', 'annuel'].includes(plan)) {
     return res.status(400).json({ error: 'Plan non reconnu' });
   }
 
   try {
-    // 1) Crée le client et attache la méthode de paiement
+    // 1) Créer le client et attacher la méthode de paiement
     const customer = await stripe.customers.create({
       email,
       payment_method: stripeToken,
@@ -34,12 +30,12 @@ app.post('/create-subscription', async (req, res) => {
       }
     });
 
-    // 2) Choix du Price ID de test
+    // 2) Choisir l'ID de tarif (Price) de test
     const priceId = plan === 'mensuel'
-      ? 'prod_S94I7kzRbg36vt'   // Domiciliation mensuelle (test)
-      : 'prod_S94JbACTYpJSYJ'; // Domiciliation annuelle (test)
+      ? 'price_1REmAAPs1z3kB9qHlghNeGeC'   // Price ID test pour abonnement mensuel
+      : 'price_VOTRE_ID_ANNUEL_TEST';      // Remplace par ton Price ID test pour abonnement annuel
 
-    // 3) Crée la souscription (paiement immédiat)
+    // 3) Créer la souscription et forcer le paiement immédiat
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
@@ -49,18 +45,18 @@ app.post('/create-subscription', async (req, res) => {
 
     res.json({ subscription });
   } catch (error) {
-    console.error('Erreur création souscription :', error);
+    console.error('Erreur création souscription :', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Webhook Stripe (optionnel)
+// (Optionnel) Endpoint pour les webhooks Stripe
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  // À compléter si tu veux gérer les events Stripe
+  // À compléter pour gérer les événements Stripe si besoin
   res.json({ received: true });
 });
 
-// Démarrage
+// Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
