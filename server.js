@@ -1,18 +1,25 @@
 // server.js
-require('dotenv').config();                             // Charge les variables d'environnement depuis .env
+require('dotenv').config(); // Charge les variables d'environnement depuis .env
 
-// => Vérification du chargement des clés Stripe
+// Vérification du chargement des clés Stripe
 console.log('▶️ STRIPE_SECRET_KEY loaded:', Boolean(process.env.STRIPE_SECRET_KEY));
 console.log('▶️ STRIPE_WEBHOOK_SECRET loaded:', Boolean(process.env.STRIPE_WEBHOOK_SECRET));
 
+const path = require('path');
 const express = require('express');
 const app = express();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Ta clé secrète Stripe
+
+// Initialise Stripe avec ta clé secrète
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Secret pour valider les webhooks
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-// ------------ WEBHOOK STRIPE ------------
+// ------- SERVIR LES FICHIERS STATIQUES -------
+// On expose tout le contenu de /public (ton index.html, CSS, JS client, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ------- ROUTES WEBHOOK STRIPE -------
 // On doit parser la requête en brut pour valider la signature
 app.post(
   '/webhook',
@@ -20,6 +27,7 @@ app.post(
   (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
+
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
@@ -28,12 +36,15 @@ app.post(
     }
 
     // Traite les événements qui t’intéressent
-    if (event.type === 'invoice.payment_succeeded') {
-      const invoice = event.data.object;
-      console.log('✅  Paiement récurrent réussi pour la souscription', invoice.subscription);
-      // → ici tu peux mettre à jour ta base, envoyer un email, etc.
-    } else {
-      console.log(`ℹ️  Événement non géré : ${event.type}`);
+    switch (event.type) {
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        console.log('✅  Paiement récurrent réussi pour la souscription', invoice.subscription);
+        // → ici tu peux mettre à jour ta base, envoyer un email, etc.
+        break;
+      }
+      default:
+        console.log(`ℹ️  Événement non géré : ${event.type}`);
     }
 
     // Répond OK à Stripe
@@ -41,11 +52,12 @@ app.post(
   }
 );
 
-// ------------ PARSEUR JSON GLOBAL ------------
-// Tout le reste des endpoints reçoit du JSON parsé
+// ------- PARSEUR JSON GLOBAL -------
+// Tout le reste des endpoints reçoit du JSON déjà parsé
 app.use(express.json());
 
-// ------------ ROUTES ------------
+// ------- ROUTES API -------
+
 // Health check
 app.get('/', (req, res) => {
   res.send('API Domiciliation OK ✅');
@@ -64,7 +76,7 @@ app.post('/create-subscription', async (req, res) => {
     // 1) Crée le client Stripe et attache la source
     const customer = await stripe.customers.create({
       email,
-      source: stripeToken
+      source: stripeToken,
     });
 
     // 2) Détermine l'ID de prix selon le plan
@@ -76,18 +88,18 @@ app.post('/create-subscription', async (req, res) => {
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
-      expand: ['latest_invoice.payment_intent']
+      expand: ['latest_invoice.payment_intent'],
     });
 
     // Retourne la souscription
     res.json({ subscription });
   } catch (error) {
-    console.error('❌  Erreur lors de la création de la souscription :', error);
+    console.error('❌  Erreur lors de la création de la souscription :', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ------------ LANCEMENT DU SERVEUR ------------
+// ------- DÉMARRAGE DU SERVEUR -------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
