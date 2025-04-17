@@ -40,18 +40,18 @@ function isImageCached(src) {
 // Affiche la page demandée et met à jour la barre d’étapes
 function showPage(pageNumber) {
   formSteps.forEach(page => {
-    page.classList.toggle("active", parseInt(page.dataset.page,10) === pageNumber);
+    page.classList.toggle("active", parseInt(page.dataset.page, 10) === pageNumber);
   });
 
   let progressStep = 1;
-  if      (pageNumber === 1)                       progressStep = 1;
-  else if (pageNumber === 2 || pageNumber === 3)   progressStep = 2;
-  else if (pageNumber === 4)                       progressStep = 3;
-  else if (pageNumber === 5)                       progressStep = 4;
-  else if (pageNumber === 6)                       progressStep = 5;
+  if      (pageNumber === 1)                    progressStep = 1;
+  else if (pageNumber === 2 || pageNumber === 3) progressStep = 2;
+  else if (pageNumber === 4)                    progressStep = 3;
+  else if (pageNumber === 5)                    progressStep = 4;
+  else if (pageNumber === 6)                    progressStep = 5;
 
   stepsBar.querySelectorAll(".step-item").forEach(item => {
-    const itemStep = parseInt(item.dataset.step,10);
+    const itemStep = parseInt(item.dataset.step, 10);
     item.classList.remove("active","completed");
     if      (itemStep < progressStep)   item.classList.add("completed");
     else if (itemStep === progressStep) item.classList.add("active");
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --------------------------------------
-// 2) VALIDATION DES ÉTAPES
+// 2) VALIDATION & NAVIGATION ENTRE ÉTAPES
 // --------------------------------------
 
 // Étape 1 : email + téléphone
@@ -100,7 +100,10 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 btnStep1.addEventListener("click", () => {
   // Réinitialise les erreurs
-  [errEmail,errPhone].forEach(e => { e.classList.remove("visible"); e.textContent = ""; });
+  [errEmail, errPhone].forEach(e => {
+    e.classList.remove("visible");
+    e.textContent = "";
+  });
   let valid = true;
 
   const eVal = email.value.trim();
@@ -131,8 +134,12 @@ btnStep1.addEventListener("click", () => {
   if (valid) goToPage(2);
 });
 
+// Étape 2 : passage direct à 3 (pas de champ à valider ici)
+const btnStep2 = document.getElementById("btn-step2-part1");
+btnStep2.addEventListener("click", () => goToPage(3));
+
 // Étape 3 : infos société
-const btnStep3      = document.getElementById("btn-step3");
+const btnStep3        = document.getElementById("btn-step3");
 const formeJuridique  = document.getElementById("forme-juridique");
 const nomSociete      = document.getElementById("nom-societe");
 const radiosSocCree   = document.getElementsByName("societe-cree");
@@ -146,14 +153,18 @@ const errSiren        = document.getElementById("error-siren");
 
 // Affiche le message micro-entreprise
 formeJuridique.addEventListener("change", () => {
-  microMsg.style.display = formeJuridique.value === "Micro-entreprise" ? "block" : "none";
+  microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
 });
 
 btnStep3.addEventListener("click", () => {
   // Réinitialise les erreurs
-  [errForme,errNomSoc,errSocCree,errSiren].forEach(e => { e.classList.remove("visible"); e.textContent = ""; });
+  [errForme, errNomSoc, errSocCree, errSiren].forEach(e => {
+    e.classList.remove("visible");
+    e.textContent = "";
+  });
   let valid = true;
 
+  // Forme juridique
   if (!formeJuridique.value) {
     errForme.textContent = "Ce champ est requis";
     errForme.classList.add("visible");
@@ -163,6 +174,7 @@ btnStep3.addEventListener("click", () => {
     formeJuridique.style.borderColor = "#ccc";
   }
 
+  // Nom société
   if (!nomSociete.value.trim()) {
     errNomSoc.textContent = "Ce champ est requis";
     errNomSoc.classList.add("visible");
@@ -172,6 +184,7 @@ btnStep3.addEventListener("click", () => {
     nomSociete.style.borderColor = "#ccc";
   }
 
+  // Société créée
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
     errSocCree.textContent = "Ce champ est requis";
@@ -179,6 +192,7 @@ btnStep3.addEventListener("click", () => {
     valid = false;
   }
 
+  // Numéro SIREN si nécessaire
   if (chosen === "oui" && !numSiren.value.trim()) {
     errSiren.textContent = "Ce champ est requis";
     errSiren.classList.add("visible");
@@ -194,11 +208,11 @@ btnStep3.addEventListener("click", () => {
 // Affiche/masque le champ SIREN
 radiosSocCree.forEach(radio => {
   radio.addEventListener("change", () => {
-    sirenField.style.display = (radio.value==="oui" && radio.checked) ? "block" : "none";
+    sirenField.style.display = (radio.value === "oui" && radio.checked) ? "block" : "none";
   });
 });
 
-// Étape 4 : adresse réexpédition
+// Étape 4 : adresse de réexpédition
 const btnStep4         = document.getElementById("btn-step4");
 const adressePrincipale = document.getElementById("adresse-principale");
 const errAdresse       = document.getElementById("error-message-adresse");
@@ -220,7 +234,7 @@ btnStep4.addEventListener("click", () => {
 // Sélection de la fréquence (page 5)
 const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
 paymentOptions.forEach(opt => {
-  opt.addEventListener("click", function(){
+  opt.addEventListener("click", function() {
     paymentOptions.forEach(o => o.classList.remove("selected"));
     this.classList.add("selected");
 
@@ -254,9 +268,9 @@ const style    = {
   invalid: { color: "#e74c3c" }
 };
 
-const cardNumber = elements.create("cardNumber",{ style });
-const cardExpiry = elements.create("cardExpiry",{ style });
-const cardCvc    = elements.create("cardCvc",   { style });
+const cardNumber = elements.create("cardNumber", { style });
+const cardExpiry = elements.create("cardExpiry", { style });
+const cardCvc    = elements.create("cardCvc",    { style });
 
 cardNumber.mount("#card-number-element");
 cardExpiry.mount("#card-expiry-element");
