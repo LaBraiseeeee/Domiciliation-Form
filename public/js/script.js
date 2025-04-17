@@ -99,7 +99,6 @@ const errPhone = document.getElementById("error-telephone");
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 btnStep1.addEventListener("click", () => {
-  // Réinitialise les erreurs
   [errEmail, errPhone].forEach(e => {
     e.classList.remove("visible");
     e.textContent = "";
@@ -134,7 +133,7 @@ btnStep1.addEventListener("click", () => {
   if (valid) goToPage(2);
 });
 
-// Étape 2 : passage direct à 3 (pas de champ à valider ici)
+// Étape 2 : passage direct à 3
 const btnStep2 = document.getElementById("btn-step2-part1");
 btnStep2.addEventListener("click", () => goToPage(3));
 
@@ -151,20 +150,17 @@ const errNomSoc       = document.getElementById("error-nomsociete");
 const errSocCree      = document.getElementById("error-soccree");
 const errSiren        = document.getElementById("error-siren");
 
-// Affiche le message micro-entreprise
 formeJuridique.addEventListener("change", () => {
   microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
 });
 
 btnStep3.addEventListener("click", () => {
-  // Réinitialise les erreurs
   [errForme, errNomSoc, errSocCree, errSiren].forEach(e => {
     e.classList.remove("visible");
     e.textContent = "";
   });
   let valid = true;
 
-  // Forme juridique
   if (!formeJuridique.value) {
     errForme.textContent = "Ce champ est requis";
     errForme.classList.add("visible");
@@ -174,7 +170,6 @@ btnStep3.addEventListener("click", () => {
     formeJuridique.style.borderColor = "#ccc";
   }
 
-  // Nom société
   if (!nomSociete.value.trim()) {
     errNomSoc.textContent = "Ce champ est requis";
     errNomSoc.classList.add("visible");
@@ -184,7 +179,6 @@ btnStep3.addEventListener("click", () => {
     nomSociete.style.borderColor = "#ccc";
   }
 
-  // Société créée
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
     errSocCree.textContent = "Ce champ est requis";
@@ -192,7 +186,6 @@ btnStep3.addEventListener("click", () => {
     valid = false;
   }
 
-  // Numéro SIREN si nécessaire
   if (chosen === "oui" && !numSiren.value.trim()) {
     errSiren.textContent = "Ce champ est requis";
     errSiren.classList.add("visible");
@@ -205,7 +198,6 @@ btnStep3.addEventListener("click", () => {
   if (valid) goToPage(4);
 });
 
-// Affiche/masque le champ SIREN
 radiosSocCree.forEach(radio => {
   radio.addEventListener("change", () => {
     sirenField.style.display = (radio.value === "oui" && radio.checked) ? "block" : "none";
@@ -245,7 +237,7 @@ paymentOptions.forEach(opt => {
 
     document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
     document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText        = parseFloat(ht ).toFixed(2).replace(".",",")+" €";
+    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".",",")+" €";
     document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",")+" €";
     document.getElementById("recap-domiciliation-final").innerText =
       parseFloat(ht).toFixed(2).replace(".",",")+" €";
@@ -253,12 +245,14 @@ paymentOptions.forEach(opt => {
 });
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE
+// 3) INTÉGRATION STRIPE (mode TEST)
 // --------------------------------------
 
-const stripe   = Stripe("pk_live_51QfLJMLEm2PALFULUxOdeLv5wodbKbxcGyNSg7Y8wxWAowohqOnxptD1mVIXwhYR6rjfanEOhEbYTcwHfKF1OhQL00qjGfTbhx");
+// Initialise Stripe en test pour tes essais
+const stripe = Stripe("pk_test_TOnCLE_TESTXXXXXXXXXXXXXXXX");
 const elements = stripe.elements();
-const style    = {
+
+const style = {
   base: {
     color: "#32325d",
     fontFamily: "Nunito, sans-serif",
@@ -298,20 +292,26 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
   const clientEmail = document.getElementById("email").value;
 
   try {
-    const res = await fetch("https://domiciliation-form-production.up.railway.app/create-subscription", {
+    const res = await fetch("/api/create-subscription", {
       method: "POST",
       headers: { "Content-Type":"application/json" },
       body: JSON.stringify({ stripeToken: token.id, plan, email: clientEmail })
     });
     const data = await res.json();
 
-    if (data.subscription?.status === "active") {
+    if (data.status === "active" && data.clientSecret) {
+      // SCA 3D Secure
+      const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
+      if (confirmError) {
+        alert("3D Secure échoué : " + confirmError.message);
+        return;
+      }
       goToPage(6);
-      document.getElementById("conf-sub-id").innerText   = data.subscription.id;
+      document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
       document.getElementById("conf-next-bill").innerText =
-        new Date(data.subscription.current_period_end*1000).toLocaleDateString();
+        new Date(Date.now() + 30*24*3600*1000).toLocaleDateString(); // ou calcul depuis le serveur
     } else {
-      throw new Error(data.error || `status ${data.subscription.status}`);
+      throw new Error(data.error || "Statut inattendu");
     }
   } catch (err) {
     alert(`Erreur paiement : ${err.message}`);
