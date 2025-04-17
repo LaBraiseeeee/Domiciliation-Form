@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Formulaire - Étapes 1 à 5</title>
-  
+
   <!-- Préchargement de l'image -->
-  <link rel="preload" as="image"
-        href="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg"
-        fetchpriority="high" />
+  <link
+    rel="preload"
+    as="image"
+    href="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg"
+    fetchpriority="high"
+  />
 
   <!-- Font Awesome (icônes) -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    integrity="sha512-..."
+    integrity="sha512-…"
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
 
   <!-- Police : Nunito -->
-  <link 
+  <link
     rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap"
   />
 
-  <!-- Notre CSS modulaire -->
+  <!-- Votre CSS -->
   <link rel="stylesheet" href="css/styles.css" />
 
-  <!-- Stripe.js (reste en head pour que StripeElements soit dispo immédiatement) -->
+  <!-- Stripe.js (nécessaire pour mount des éléments) -->
   <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
@@ -59,12 +62,17 @@
 
     <div class="form-container" id="form-container">
       <form id="multi-step-form" novalidate>
-        <!-- Étape 1 : email & téléphone -->
+        <!-- Étape 1 : Email & téléphone -->
         <div class="form-step active" data-page="1">
           <div class="form-group">
             <div class="input-container">
               <i class="fa-solid fa-envelope input-icon"></i>
-              <input type="text" id="email" class="form-control" placeholder="Votre email" />
+              <input
+                type="text"
+                id="email"
+                class="form-control"
+                placeholder="Votre email"
+              />
             </div>
             <div class="error-wrap">
               <span class="error-message" id="error-email"></span>
@@ -73,7 +81,12 @@
           <div class="form-group">
             <div class="input-container">
               <i class="fa-solid fa-phone input-icon"></i>
-              <input type="text" id="telephone" class="form-control" placeholder="Votre numéro de téléphone" />
+              <input
+                type="text"
+                id="telephone"
+                class="form-control"
+                placeholder="Votre numéro de téléphone"
+              />
             </div>
             <div class="error-wrap">
               <span class="error-message" id="error-telephone"></span>
@@ -83,33 +96,45 @@
             <button type="button" class="btn" id="btn-step1">COMMENCER</button>
           </div>
           <p class="info-text">
-            Vos informations sont privées et ne seront pas transmises à des tiers
+            Vos informations sont privées et ne seront pas transmises à des
+            tiers
           </p>
         </div>
 
-        <!-- Étape 2 : adresse de domiciliation -->
+        <!-- Étape 2 : Adresse de domiciliation -->
         <div class="form-step" data-page="2">
           <div class="address-card">
             <h2 class="address-title">Votre adresse de domiciliation</h2>
             <p class="address-subtitle">
-              83a Rue des Alliés, 42000 Saint-Étienne<br>
+              83a Rue des Alliés, 42000 Saint‑Étienne<br />
               L'Atelier Cail
             </p>
             <div class="image-placeholder" id="image-placeholder"></div>
-            <img 
+            <img
               id="address-image"
-              src="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg" 
-              alt="Atelier Cail" 
+              src="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg"
+              alt="Atelier Cail"
               class="address-image"
-            >
+            />
           </div>
-          <div class="btn-center" style="display:flex; justify-content:flex-end; margin-top:20px;">
-            <button type="button" class="btn-secondary btn" onclick="goToPage(1)">Précédent</button>
-            <button type="button" class="btn" id="btn-step2-part1">SUIVANT</button>
+          <div
+            class="btn-center"
+            style="display:flex; justify-content:flex-end; margin-top:20px;"
+          >
+            <button
+              type="button"
+              class="btn-secondary btn"
+              onclick="goToPage(1)"
+            >
+              Précédent
+            </button>
+            <button type="button" class="btn" id="btn-step2-part1">
+              SUIVANT
+            </button>
           </div>
         </div>
 
-        <!-- Étape 3 : infos société -->
+        <!-- Étape 3 : Infos société -->
         <div class="form-step" data-page="3">
           <div class="form-block" style="margin-bottom:20px;">
             <h2>Informations sur la société</h2>
@@ -118,7 +143,7 @@
                 <i class="fa-solid fa-chevron-down select-arrow"></i>
                 <select id="forme-juridique" class="form-control">
                   <option value="">Sélectionnez une forme juridique</option>
-                  <option value="Micro-entreprise">Micro-entreprise</option>
+                  <option value="Micro-entreprise">Micro‑entreprise</option>
                   <option value="EI">EI</option>
                   <option value="EURL">EURL</option>
                   <option value="SASU">SASU</option>
@@ -137,19 +162,28 @@
             <div class="form-group">
               <div class="input-container">
                 <i class="fa-solid fa-building input-icon"></i>
-                <input type="text" id="nom-societe" class="form-control" placeholder="Nom de votre société" />
+                <input
+                  type="text"
+                  id="nom-societe"
+                  class="form-control"
+                  placeholder="Nom de votre société"
+                />
               </div>
               <div class="error-wrap">
                 <span class="error-message" id="error-nomsociete"></span>
               </div>
-              <div id="micro-entreprise-message" class="micro-entreprise-message" style="display:none;">
-                Pour une micro-entreprise, votre société s’appelle Prénom Nom.
+              <div
+                id="micro-entreprise-message"
+                class="micro-entreprise-message"
+                style="display:none;"
+              >
+                Pour une micro‑entreprise, votre société s’appelle Prénom Nom.
               </div>
             </div>
           </div>
-          <hr>
+          <hr />
           <div class="form-block">
-            <h2>Votre société est-elle déjà créée ?</h2>
+            <h2>Votre société est‑elle déjà créée ?</h2>
             <div class="form-group">
               <div class="radio-group">
                 <label>
@@ -165,40 +199,85 @@
                 <span class="error-message" id="error-soccree"></span>
               </div>
             </div>
-            <div class="form-group" id="siren-field" style="display:none;">
+            <div
+              class="form-group"
+              id="siren-field"
+              style="display:none; margin-top:10px;"
+            >
               <div class="input-container">
                 <i class="fa-solid fa-id-card input-icon"></i>
-                <input type="text" id="num-siren" class="form-control" placeholder="Numéro de SIREN" />
+                <input
+                  type="text"
+                  id="num-siren"
+                  class="form-control"
+                  placeholder="Numéro de SIREN"
+                />
               </div>
               <div class="error-wrap">
                 <span class="error-message" id="error-siren"></span>
               </div>
             </div>
           </div>
-          <div class="btn-center" style="display:flex; justify-content:flex-end; margin-top:20px;">
-            <button type="button" class="btn-secondary btn" onclick="goToPage(2)">Précédent</button>
+          <div
+            class="btn-center"
+            style="display:flex; justify-content:flex-end; margin-top:20px;"
+          >
+            <button
+              type="button"
+              class="btn-secondary btn"
+              onclick="goToPage(2)"
+            >
+              Précédent
+            </button>
             <button type="button" class="btn" id="btn-step3">SUIVANT</button>
           </div>
         </div>
 
-        <!-- Étape 4 : options -->
+        <!-- Étape 4 : Options -->
         <div class="form-step" data-page="4">
           <div class="options-container">
             <div class="options-left-column">
               <div class="options-block">
-                <label class="options-label">Adresse de réexpédition du courrier</label>
-                <input type="text" id="adresse-principale" class="options-input" placeholder="Adresse + Code postal + Ville" />
-                <div id="error-message-adresse" class="error-message"></div>
-                <input type="text" id="complement-adresse" class="options-input" placeholder="Complément : bâtiment, étage..." />
+                <label class="options-label"
+                  >Adresse de réexpédition du courrier</label
+                >
+                <input
+                  type="text"
+                  id="adresse-principale"
+                  class="options-input"
+                  placeholder="Adresse + Code postal + Ville"
+                />
+                <div
+                  id="error-message-adresse"
+                  class="error-message"
+                ></div>
+                <input
+                  type="text"
+                  id="complement-adresse"
+                  class="options-input"
+                  placeholder="Complément : bâtiment, étage..."
+                />
               </div>
               <div class="options-block">
                 <label class="options-label">Fréquence de réexpédition</label>
                 <div class="frequency-option selected">
-                  <div class="frequency-title">Scan numérique (mensuel) et réexpédition mensuelle sur demande</div>
+                  <div class="frequency-title">
+                    Scan numérique (mensuel) et réexpédition mensuelle sur
+                    demande
+                  </div>
                   <div class="frequency-features">
-                    <div class="frequency-feature"><i class="fa-solid fa-check"></i><span>Scan complet du courrier</span></div>
-                    <div class="frequency-feature"><i class="fa-solid fa-check"></i><span>Envoi par email</span></div>
-                    <div class="frequency-feature"><i class="fa-solid fa-check"></i><span>Réexpédition mensuelle sur demande</span></div>
+                    <div class="frequency-feature">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Scan complet du courrier</span>
+                    </div>
+                    <div class="frequency-feature">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Envoi par email</span>
+                    </div>
+                    <div class="frequency-feature">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Réexpédition mensuelle sur demande</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -206,31 +285,53 @@
             <div class="options-right-column">
               <div class="recap-card">
                 <h3 class="recap-title">RÉCAPITULATIF</h3>
-                <div class="recap-item"><span>Domiciliation - sans engagement</span><span id="recap-domiciliation">15,00 €</span></div>
-                <div class="recap-item"><span>Réexpédition mensuelle sur demande</span><span>Gratuit</span></div>
-                <div class="recap-total" id="recap-total-ht"><span id="total-label-ht">TOTAL MENSUEL HT</span><span id="total-ht">15,00 €</span></div>
-                <div class="recap-total" id="recap-total-ttc"><span id="total-label-ttc">TOTAL MENSUEL TTC</span><span id="total-ttc">18,00 €</span></div>
+                <div class="recap-item">
+                  <span>Domiciliation – sans engagement</span>
+                  <span id="recap-domiciliation">15,00 €</span>
+                </div>
+                <div class="recap-item">
+                  <span>Réexpédition mensuelle sur demande</span>
+                  <span>Gratuit</span>
+                </div>
+                <div class="recap-total" id="recap-total-ht">
+                  <span id="total-label-ht">TOTAL MENSUEL HT</span>
+                  <span id="total-ht">15,00 €</span>
+                </div>
+                <div class="recap-total" id="recap-total-ttc">
+                  <span id="total-label-ttc">TOTAL MENSUEL TTC</span>
+                  <span id="total-ttc">18,00 €</span>
+                </div>
               </div>
               <div class="button-center">
-                <button type="button" id="btn-step4" class="options-button">CONTINUER</button>
+                <button type="button" id="btn-step4" class="options-button">
+                  CONTINUER
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Étape 5 : paiement -->
+        <!-- Étape 5 : Paiement -->
         <div class="form-step" data-page="5">
           <div class="options-container">
             <div class="options-left-column" id="payment-options-container">
               <h2>Fréquence de paiement</h2>
-              <div class="frequency-option selected" data-payment-price-ht="15.00" data-payment-price-ttc="18.00">
+              <div
+                class="frequency-option selected"
+                data-payment-price-ht="15.00"
+                data-payment-price-ttc="18.00"
+              >
                 <div class="frequency-title">Mensuelle</div>
-                <p>15,00 € / mois (soit 180,00 € / an)</p>
+                <p>15,00 € / mois (soit 180,00 € / an)</p>
               </div>
-              <div class="frequency-option" data-payment-price-ht="150.00" data-payment-price-ttc="180.00">
+              <div
+                class="frequency-option"
+                data-payment-price-ht="150.00"
+                data-payment-price-ttc="180.00"
+              >
                 <div class="frequency-title">Annuelle</div>
-                <p>150,00 € / an (soit 12,50 € / mois)</p>
-                <div class="annual-banner">2 mois offerts</div>
+                <p>150,00 € / an (soit 12,50 € / mois)</p>
+                <div class="annual-banner">2 mois offerts</div>
               </div>
               <div class="card-form-container">
                 <h3>Carte bancaire</h3>
@@ -258,22 +359,36 @@
             <div class="options-right-column">
               <div class="recap-card">
                 <h3 class="recap-title">RÉCAPITULATIF</h3>
-                <div class="recap-item"><span>Domiciliation - sans engagement</span><span id="recap-domiciliation-final">15,00 €</span></div>
-                <div class="recap-item"><span>Réexpédition mensuelle sur demande</span><span>Gratuit</span></div>
-                <div class="recap-total" id="recap-total-ht-final"><span id="total-label-ht-final">TOTAL MENSUEL HT</span><span id="total-ht-final">15,00 €</span></div>
-                <div class="recap-total" id="recap-total-ttc-final"><span id="total-label-ttc-final">TOTAL MENSUEL TTC</span><span id="total-ttc-final">18,00 €</span></div>
+                <div class="recap-item">
+                  <span>Domiciliation – sans engagement</span>
+                  <span id="recap-domiciliation-final">15,00 €</span>
+                </div>
+                <div class="recap-item">
+                  <span>Réexpédition mensuelle sur demande</span>
+                  <span>Gratuit</span>
+                </div>
+                <div class="recap-total" id="recap-total-ht-final">
+                  <span id="total-label-ht-final">TOTAL MENSUEL HT</span>
+                  <span id="total-ht-final">15,00 €</span>
+                </div>
+                <div class="recap-total" id="recap-total-ttc-final">
+                  <span id="total-label-ttc-final">TOTAL MENSUEL TTC</span>
+                  <span id="total-ttc-final">18,00 €</span>
+                </div>
               </div>
               <div class="button-center">
-                <button type="button" id="btn-step5" class="options-button">PAIEMENT</button>
+                <button type="button" id="btn-step5" class="options-button">
+                  PAIEMENT
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Étape 6 : confirmation -->
+        <!-- Étape 6 : Confirmation -->
         <div class="form-step" data-page="6">
           <h2>Paiement réussi !</h2>
-          <p>Voici les informations qui t'intéressent :</p>
+          <p>Voici les informations qui t'intéressent :</p>
           <div class="recap-card">
             <p>ID de souscription : <strong id="conf-sub-id"></strong></p>
             <p>Prochaine facturation : <strong id="conf-next-bill"></strong></p>
@@ -283,7 +398,7 @@
     </div>
   </div>
 
-  <!-- Modules JavaScript -->
+  <!-- Vos modules JavaScript -->
   <script src="js/navigation.js"></script>
   <script src="js/validation.js"></script>
   <script src="js/stripe.js"></script>
