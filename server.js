@@ -1,5 +1,10 @@
 // server.js
 require('dotenv').config();                             // Charge les variables d'environnement depuis .env
+
+// => Vérification du chargement des clés Stripe
+console.log('▶️ STRIPE_SECRET_KEY loaded:', Boolean(process.env.STRIPE_SECRET_KEY));
+console.log('▶️ STRIPE_WEBHOOK_SECRET loaded:', Boolean(process.env.STRIPE_WEBHOOK_SECRET));
+
 const express = require('express');
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Ta clé secrète Stripe
