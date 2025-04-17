@@ -1,61 +1,89 @@
 // server.js
-require('dotenv').config();        // Charge les variables d'environnement depuis .env
+require('dotenv').config();                             // Charge les variables d'environnement depuis .env
 const express = require('express');
 const app = express();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Ta clé secrète Stripe (mode test)
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Ta clé secrète Stripe
 
-// Parse le JSON des requêtes
+// Secret pour valider les webhooks
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+// ------------ WEBHOOK STRIPE ------------
+// On doit parser la requête en brut pour valider la signature
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err) {
+      console.error('⚠️  Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Traite les événements qui t’intéressent
+    if (event.type === 'invoice.payment_succeeded') {
+      const invoice = event.data.object;
+      console.log('✅  Paiement récurrent réussi pour la souscription', invoice.subscription);
+      // → ici tu peux mettre à jour ta base, envoyer un email, etc.
+    } else {
+      console.log(`ℹ️  Événement non géré : ${event.type}`);
+    }
+
+    // Répond OK à Stripe
+    res.json({ received: true });
+  }
+);
+
+// ------------ PARSEUR JSON GLOBAL ------------
+// Tout le reste des endpoints reçoit du JSON parsé
 app.use(express.json());
 
-// Route de santé pour vérifier que le serveur tourne
+// ------------ ROUTES ------------
+// Health check
 app.get('/', (req, res) => {
   res.send('API Domiciliation OK ✅');
 });
 
-// Endpoint pour créer la souscription
+// Création de la souscription
 app.post('/create-subscription', async (req, res) => {
   const { stripeToken, plan, email } = req.body;
 
-  // Vérifie que le plan est valide
+  // Vérification du plan
   if (!['mensuel', 'annuel'].includes(plan)) {
     return res.status(400).json({ error: 'Plan non reconnu' });
   }
 
   try {
-    // 1) Crée le client et attache la source (tok_…)
+    // 1) Crée le client Stripe et attache la source
     const customer = await stripe.customers.create({
       email,
       source: stripeToken
     });
 
-    // 2) Sélectionne l'ID de prix de test selon le plan
+    // 2) Détermine l'ID de prix selon le plan
     const priceId = plan === 'mensuel'
-      ? 'price_1REmAAPs1z3kB9qHlghNeGeC'    // Price ID test pour abonnement mensuel
-      : 'price_VOTRE_ID_ANNUEL_TEST';      // Remplace par ton Price ID test pour abonnement annuel
+      ? 'price_1REmAAPs1z3kB9qHlghNeGeC'    // Price ID test mensuel
+      : 'price_VOTRE_ID_ANNUEL_TEST';      // Remplace par ton Price ID test annuel
 
-    // 3) Crée la souscription sur Stripe
+    // 3) Crée la souscription
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
       expand: ['latest_invoice.payment_intent']
     });
 
-    // Retourne l'objet subscription
+    // Retourne la souscription
     res.json({ subscription });
   } catch (error) {
-    console.error('Erreur lors de la création de la souscription :', error);
+    console.error('❌  Erreur lors de la création de la souscription :', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// (Optionnel) Endpoint pour les webhooks Stripe
-app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  // À compléter : valider le signature et traiter les events Stripe
-  res.json({ received: true });
-});
-
-// Démarrage du serveur
+// ------------ LANCEMENT DU SERVEUR ------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Serveur démarré sur http://localhost:${PORT}`);
+  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
 });
