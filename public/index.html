@@ -6,7 +6,9 @@
   <title>Formulaire - Étapes 1 à 5</title>
   
   <!-- Préchargement de l'image -->
-  <link rel="preload" as="image" href="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg" fetchpriority="high" />
+  <link rel="preload" as="image"
+        href="https://github.com/LaBraiseeeee/Domiciliation-Form/raw/main/ateler-cail-coworking-saint-etienne0003_standard.jpg"
+        fetchpriority="high" />
 
   <!-- Font Awesome (icônes) -->
   <link
@@ -23,491 +25,15 @@
     href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap"
   />
 
-  <!-- Stripe.js -->
+  <!-- Notre CSS modulaire -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Stripe.js (reste en head pour que StripeElements soit dispo immédiatement) -->
   <script src="https://js.stripe.com/v3/"></script>
-
-  <style>
-    /* ------- RESET & BASE ------- */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: "Nunito", sans-serif;
-      background: #f5f7fa;
-      font-size: 16px;
-      line-height: 1.5;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    /* -------- CONTENEUR GLOBAL -------- */
-    .wrapper {
-      width: 100%;
-      margin-top: 60px;
-    }
-    /* ------- CONTENEUR FORMULAIRE ------- */
-    .form-container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-      padding: 40px 30px;
-      margin: 0 auto;
-      min-width: unset !important;
-    }
-    /* Largeur spécifique pour chaque étape */
-    .form-step[data-page="1"],
-    .form-step[data-page="2"],
-    .form-step[data-page="3"] {
-      max-width: 500px !important;
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-    .form-step[data-page="4"],
-    .form-step[data-page="5"] {
-      max-width: 900px !important;
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-    /* ------ BARRE D'ÉTAPES EN HAUT ------ */
-    .steps-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      position: relative;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .steps-container.step-narrow {
-      max-width: 500px;
-    }
-    .steps-container.step-wide {
-      max-width: 900px;
-    }
-    .steps-container::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 2px;
-      background: #ddd;
-      top: 17px;
-      left: 0;
-      z-index: -1;
-    }
-    .step-item {
-      text-align: center;
-      position: relative;
-    }
-    .step-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid #ddd;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 14px;
-      color: #888;
-      font-weight: 500;
-      margin: 0 auto 8px auto;
-      background: #fff;
-    }
-    .step-title {
-      font-size: 14px;
-      color: #aaa;
-      font-weight: 400;
-    }
-    .active .step-num {
-      border-color: #000;
-      background: #000;
-      color: #fff;
-    }
-    .active .step-title {
-      color: #000;
-      font-weight: 600;
-    }
-    .completed .step-num {
-      border-color: #000;
-      background: #fff;
-      color: #000;
-    }
-    .completed .step-title {
-      color: #000;
-      font-weight: 400;
-    }
-    /* ------- CONTENU DES ÉTAPES ------- */
-    .form-step { display: none; }
-    .form-step.active { display: block; }
-
-    /* Réduction de l'espace entre les champs sur la page 1 (email, téléphone et bouton) */
-    .form-step[data-page="1"] .form-group {
-      margin-bottom: 4px;
-    }
-    .form-step[data-page="1"] .btn-center {
-      margin-top: 8px;
-    }
-
-    .form-group { margin-bottom: 15px; }
-    .input-container {
-      position: relative;
-      margin-bottom: 1rem;
-    }
-    .input-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #888;
-      font-size: 18px;
-    }
-    .form-control {
-      width: 100%;
-      padding: 14px 18px 14px 48px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-      transition: border-color 0.3s;
-      font-family: "Nunito", sans-serif;
-      text-align: left;
-    }
-    .form-control::placeholder {
-      color: #aaa;
-      font-family: "Nunito", sans-serif;
-      font-size: 15px;
-      text-align: left;
-    }
-    .form-control:focus {
-      outline: none;
-      border-color: #3a7bd5;
-      background: #fafafa;
-    }
-    .error-wrap { min-height: 12px; margin-top: 2px; }
-    .error-message {
-      color: #e74c3c;
-      font-size: 14px;
-      margin: 4px 0 0 0;
-      display: none;
-    }
-    .error-message.visible { display: block; }
-    .btn {
-      display: inline-block;
-      background: #000;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      width: 100%;
-      padding: 16px 0;
-      font-size: 16px;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 400;
-      cursor: pointer;
-      transition: background 0.3s;
-      text-align: center;
-    }
-    .btn:hover { background: #333; }
-    .btn-center { margin-top: 12px; }
-    .btn-secondary { background: #666; margin-right: 10px; }
-    .btn-secondary:hover { background: #555; }
-    .info-text {
-      margin-top: 15px;
-      font-size: 12px;
-      color: #999;
-      text-align: center;
-      line-height: 1.4;
-      font-family: "Nunito", sans-serif;
-    }
-    /* Adresse de domiciliation (Étape 2) */
-    .address-card {
-      text-align: center;
-      padding: 15px 20px;
-      border: none;
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-      background: #fff;
-      width: 100%;
-      max-width: 460px;
-      margin: 0 auto;
-    }
-    .address-title {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: #333;
-      position: relative;
-      z-index: 2;
-      font-family: "Nunito", sans-serif;
-    }
-    .address-subtitle {
-      font-size: 16px;
-      margin-bottom: 20px;
-      color: #666;
-      position: relative;
-      z-index: 2;
-      font-family: "Nunito", sans-serif;
-      line-height: 1.4;
-    }
-    .address-image {
-      width: 100%;
-      max-width: 440px;
-      border-radius: 8px;
-      display: block;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .address-image.loaded { opacity: 1; }
-    .image-placeholder {
-      width: 100%;
-      max-width: 440px;
-      height: 320px;
-      border-radius: 8px;
-      background-color: #f0f0f0;
-      margin: 0 auto;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2;
-    }
-    .image-placeholder::after {
-      content: "Chargement...";
-      color: #666;
-      font-size: 14px;
-    }
-    @keyframes shimmer {
-      0% { background-position: -468px 0; }
-      100% { background-position: 468px 0; }
-    }
-    .loading-shimmer {
-      animation: shimmer 1s linear infinite forwards;
-      background: linear-gradient(to right, #f0f0f0 8%, #e0e0e0 18%, #f0f0f0 33%);
-      background-size: 800px 104px;
-    }
-    /* ------- STYLES POUR L'ÉTAPE 3 (SOCIÉTÉ) ------- */
-    .form-block, .card, .radio-group { width: 100%; max-width: 100%; }
-    .micro-entreprise-message {
-      font-size: 14px;
-      color: #666;
-      margin-top: 10px;
-      padding: 10px;
-      background-color: #f8f9fb;
-      border: 1px solid #e8e8e8;
-      border-radius: 8px;
-      text-align: left;
-    }
-    .select-container {
-      position: relative;
-    }
-    .select-arrow {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-      color: #888;
-    }
-    .select-container select {
-      padding-right: 40px;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-    }
-    /* ------- STYLES POUR L'ÉTAPE 4 (OPTIONS) ------- */
-    .options-container {
-      display: flex;
-      gap: 3rem;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    .options-left-column { flex: 1; min-width: 320px; }
-    .options-right-column {
-      flex: 1;
-      min-width: 320px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .options-title {
-      font-size: 24px;
-      margin-bottom: 1.5rem;
-      color: #333;
-    }
-    .options-subtitle {
-      color: #666;
-      margin-bottom: 2rem;
-      font-size: 16px;
-    }
-    .options-block { margin-bottom: 1.8rem; position: relative; }
-    .options-label {
-      font-weight: 600;
-      margin-bottom: 1.2rem;
-      color: #333;
-      font-size: 18px;
-      display: block;
-    }
-    .options-input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin-bottom: 1.2rem;
-      font-size: 16px;
-      transition: border-color 0.3s;
-    }
-    .options-input:focus {
-      outline: none;
-      border-color: #3a7bd5;
-      background: #fafafa;
-    }
-    /* Style des blocs de fréquence de paiement */
-    .frequency-option {
-      border: 1px solid #999;
-      border-radius: 12px;
-      padding: 1.8rem;
-      margin: 1rem 0;
-      background: #f9f9f9;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    .frequency-option.selected {
-      border-color: #4285f4;
-      background: rgba(66, 133, 244, 0.05);
-      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.1);
-    }
-    .frequency-option:hover {
-      border-color: #4285f4;
-      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.1);
-    }
-    .frequency-title {
-      font-size: 17px;
-      margin-bottom: 1.2rem;
-      color: #444;
-      font-weight: 600;
-    }
-    .frequency-features { margin-top: 0.8rem; }
-    .frequency-feature {
-      display: flex;
-      align-items: center;
-      margin-bottom: 0.8rem;
-    }
-    .fa-check {
-      color: #4285f4;
-      margin-right: 0.8rem;
-      font-size: 16px;
-    }
-    /* Style amélioré pour le récapitulatif */
-    .recap-card {
-      border-radius: 12px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      background: linear-gradient(145deg, #ffffff, #f8f9fb);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #e8e8e8;
-      width: 100%;
-    }
-    .recap-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 6px;
-      height: 100%;
-      background: #000;
-    }
-    .recap-title {
-      font-size: 20px;
-      margin-bottom: 1.5rem;
-      color: #333;
-      position: relative;
-      padding-bottom: 10px;
-      font-weight: 700;
-    }
-    .recap-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      font-size: 16px;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .recap-item:last-of-type { border-bottom: none; }
-    .recap-item:hover { background-color: rgba(0, 0, 0, 0.01); }
-    .recap-item span:first-child { white-space: nowrap; color: #555; }
-    .recap-item span:last-child { font-weight: 600; }
-    .recap-total {
-      border-top: 2px solid #eee;
-      padding-top: 1.2rem;
-      margin-top: 1.2rem;
-      font-weight: 700;
-      font-size: 18px;
-      display: flex;
-      justify-content: space-between;
-    }
-    /* Pour HT on conserve une taille et TTC sera affiché en plus gros */
-    #total-ht-final { font-weight: bold; font-size: 18px; }
-    #total-ttc-final { font-weight: bold; font-size: 24px; }
-    .options-button {
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 1.3rem 2rem;
-      width: 100%;
-      max-width: 300px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 600;
-      transition: background-color 0.3s;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      margin-top: 20px;
-    }
-    .button-center { display: flex; justify-content: center; width: 100%; }
-    /* Conteneur délimiteur pour le formulaire de carte */
-    .card-form-container {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 16px;
-      background: #fafafa;
-    }
-    /* ----- STYLES SPÉCIFIQUES POUR LES ELEMENTS STRIPE ----- */
-    .stripe-input {
-      padding: 12px 16px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: #fff;
-      margin-bottom: 1rem;
-    }
-    .stripe-input--focus {
-      border-color: #3a7bd5;
-      outline: none;
-    }
-    /* Bannière pour le bloc annuel */
-    .annual-banner {
-      background: #000;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      text-align: center;
-      padding: 4px 8px;
-      border-radius: 4px;
-      margin-top: 8px;
-      display: inline-block;
-    }
-  </style>
 </head>
 <body>
   <div class="wrapper">
-    <!-- BARRE D'ÉTAPES (5 étapes, ajout de l'étape 5 pour confirmation) -->
+    <!-- Barre d'étapes -->
     <div class="steps-container step-narrow" id="steps-bar">
       <div class="step-item active" data-step="1">
         <div class="step-num">1</div>
@@ -533,7 +59,7 @@
 
     <div class="form-container" id="form-container">
       <form id="multi-step-form" novalidate>
-        <!-- Page 1 : Email et téléphone -->
+        <!-- Étape 1 : email & téléphone -->
         <div class="form-step active" data-page="1">
           <div class="form-group">
             <div class="input-container">
@@ -561,7 +87,7 @@
           </p>
         </div>
 
-        <!-- Page 2 : Adresse de domiciliation -->
+        <!-- Étape 2 : adresse de domiciliation -->
         <div class="form-step" data-page="2">
           <div class="address-card">
             <h2 class="address-title">Votre adresse de domiciliation</h2>
@@ -577,20 +103,20 @@
               class="address-image"
             >
           </div>
-          <div class="btn-center" style="display: flex; justify-content: flex-end; margin-top: 20px;">
+          <div class="btn-center" style="display:flex; justify-content:flex-end; margin-top:20px;">
             <button type="button" class="btn-secondary btn" onclick="goToPage(1)">Précédent</button>
             <button type="button" class="btn" id="btn-step2-part1">SUIVANT</button>
           </div>
         </div>
 
-        <!-- Page 3 : Informations sur la société -->
+        <!-- Étape 3 : infos société -->
         <div class="form-step" data-page="3">
-          <div class="form-block" style="margin-bottom: 20px;">
-            <h2 style="font-size: 20px; margin-bottom: 20px; color: #333;">Informations sur la société</h2>
+          <div class="form-block" style="margin-bottom:20px;">
+            <h2>Informations sur la société</h2>
             <div class="form-group">
               <div class="select-container">
                 <i class="fa-solid fa-chevron-down select-arrow"></i>
-                <select id="forme-juridique" class="form-control" style="padding-left: 14px;">
+                <select id="forme-juridique" class="form-control">
                   <option value="">Sélectionnez une forme juridique</option>
                   <option value="Micro-entreprise">Micro-entreprise</option>
                   <option value="EI">EI</option>
@@ -616,22 +142,22 @@
               <div class="error-wrap">
                 <span class="error-message" id="error-nomsociete"></span>
               </div>
-              <div id="micro-entreprise-message" class="micro-entreprise-message" style="display: none;">
+              <div id="micro-entreprise-message" class="micro-entreprise-message" style="display:none;">
                 Pour une micro-entreprise, votre société s’appelle Prénom Nom.
               </div>
             </div>
           </div>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+          <hr>
           <div class="form-block">
-            <h2 style="font-size: 20px; margin-bottom: 20px; color: #333;">Votre société est-elle déjà créée ?</h2>
+            <h2>Votre société est-elle déjà créée ?</h2>
             <div class="form-group">
-              <div class="radio-group" style="display: flex; flex-direction: column; gap: 10px;">
-                <label style="display: flex; align-items: center; font-size: 15px; color: #333;">
-                  <input type="radio" name="societe-cree" value="oui" style="margin-right: 10px; accent-color: #4285f4;" />
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="societe-cree" value="oui" />
                   Oui, je souhaite transférer le siège social
                 </label>
-                <label style="display: flex; align-items: center; font-size: 15px; color: #333;">
-                  <input type="radio" name="societe-cree" value="non" style="margin-right: 10px; accent-color: #4285f4;" />
+                <label>
+                  <input type="radio" name="societe-cree" value="non" />
                   Non, la société est en cours de création
                 </label>
               </div>
@@ -639,7 +165,7 @@
                 <span class="error-message" id="error-soccree"></span>
               </div>
             </div>
-            <div class="form-group" id="siren-field" style="margin-top: 10px; display: none;">
+            <div class="form-group" id="siren-field" style="display:none;">
               <div class="input-container">
                 <i class="fa-solid fa-id-card input-icon"></i>
                 <input type="text" id="num-siren" class="form-control" placeholder="Numéro de SIREN" />
@@ -649,39 +175,30 @@
               </div>
             </div>
           </div>
-          <div class="btn-center" style="display: flex; justify-content: flex-end; margin-top: 20px;">
+          <div class="btn-center" style="display:flex; justify-content:flex-end; margin-top:20px;">
             <button type="button" class="btn-secondary btn" onclick="goToPage(2)">Précédent</button>
             <button type="button" class="btn" id="btn-step3">SUIVANT</button>
           </div>
         </div>
 
-        <!-- Page 4 : Options de domiciliation -->
+        <!-- Étape 4 : options -->
         <div class="form-step" data-page="4">
           <div class="options-container">
             <div class="options-left-column">
               <div class="options-block">
                 <label class="options-label">Adresse de réexpédition du courrier</label>
-                <input type="text" id="adresse-principale" class="options-input" placeholder="Adresse + Code postal + Ville">
-                <div id="error-message-adresse" class="error-message">Ce champ est requis</div>
-                <input type="text" id="complement-adresse" class="options-input" placeholder="Complément : bâtiment, étage...">
+                <input type="text" id="adresse-principale" class="options-input" placeholder="Adresse + Code postal + Ville" />
+                <div id="error-message-adresse" class="error-message"></div>
+                <input type="text" id="complement-adresse" class="options-input" placeholder="Complément : bâtiment, étage..." />
               </div>
               <div class="options-block">
                 <label class="options-label">Fréquence de réexpédition</label>
                 <div class="frequency-option selected">
                   <div class="frequency-title">Scan numérique (mensuel) et réexpédition mensuelle sur demande</div>
                   <div class="frequency-features">
-                    <div class="frequency-feature">
-                      <i class="fa-solid fa-check"></i>
-                      <span>Scan complet du courrier</span>
-                    </div>
-                    <div class="frequency-feature">
-                      <i class="fa-solid fa-check"></i>
-                      <span>Envoi par email</span>
-                    </div>
-                    <div class="frequency-feature">
-                      <i class="fa-solid fa-check"></i>
-                      <span>Réexpédition mensuelle sur demande</span>
-                    </div>
+                    <div class="frequency-feature"><i class="fa-solid fa-check"></i><span>Scan complet du courrier</span></div>
+                    <div class="frequency-feature"><i class="fa-solid fa-check"></i><span>Envoi par email</span></div>
+                    <div class="frequency-feature"><i class="fa-solid fa-check"></i><span>Réexpédition mensuelle sur demande</span></div>
                   </div>
                 </div>
               </div>
@@ -689,23 +206,10 @@
             <div class="options-right-column">
               <div class="recap-card">
                 <h3 class="recap-title">RÉCAPITULATIF</h3>
-                <div class="recap-item">
-                  <span>Domiciliation - sans engagement</span>
-                  <span id="recap-domiciliation">15,00 €</span>
-                </div>
-                <div class="recap-item">
-                  <span>Réexpédition mensuelle sur demande</span>
-                  <span>Gratuit</span>
-                </div>
-                <div class="recap-total" id="recap-total-ht">
-                  <span id="total-label-ht" style="font-weight: bold;">TOTAL MENSUEL HT</span>
-                  <span id="total-ht" style="font-weight: bold;">15,00 €</span>
-                </div>
-                <div class="recap-total" id="recap-total-ttc">
-                  <span id="total-label-ttc" style="font-weight: bold;">TOTAL MENSUEL TTC</span>
-                  <!-- On applique font-size: 24px pour correspondre à l'étape paiement -->
-                  <span id="total-ttc" style="font-weight: bold; font-size: 24px;">18,00 €</span>
-                </div>
+                <div class="recap-item"><span>Domiciliation - sans engagement</span><span id="recap-domiciliation">15,00 €</span></div>
+                <div class="recap-item"><span>Réexpédition mensuelle sur demande</span><span>Gratuit</span></div>
+                <div class="recap-total" id="recap-total-ht"><span id="total-label-ht">TOTAL MENSUEL HT</span><span id="total-ht">15,00 €</span></div>
+                <div class="recap-total" id="recap-total-ttc"><span id="total-label-ttc">TOTAL MENSUEL TTC</span><span id="total-ttc">18,00 €</span></div>
               </div>
               <div class="button-center">
                 <button type="button" id="btn-step4" class="options-button">CONTINUER</button>
@@ -714,72 +218,50 @@
           </div>
         </div>
 
-        <!-- Page 5 : Paiement avec récapitulatif et formulaire de carte bancaire détaillé -->
+        <!-- Étape 5 : paiement -->
         <div class="form-step" data-page="5">
           <div class="options-container">
-            <!-- Colonne gauche : Fréquence de paiement et formulaire de carte bancaire -->
             <div class="options-left-column" id="payment-options-container">
-              <h2 style="font-size: 20px; margin-bottom: 20px; color: #333;">Fréquence de paiement</h2>
-              <div class="frequency-option selected" style="margin-bottom: 1.2rem;" data-payment-price-ht="15.00" data-payment-price-ttc="18.00">
+              <h2>Fréquence de paiement</h2>
+              <div class="frequency-option selected" data-payment-price-ht="15.00" data-payment-price-ttc="18.00">
                 <div class="frequency-title">Mensuelle</div>
-                <p style="margin-bottom: 0.5rem;">15,00 € / mois (soit 180,00 € / an)</p>
+                <p>15,00 € / mois (soit 180,00 € / an)</p>
               </div>
-              <div class="frequency-option" style="margin-bottom: 1.2rem;" data-payment-price-ht="150.00" data-payment-price-ttc="180.00">
+              <div class="frequency-option" data-payment-price-ht="150.00" data-payment-price-ttc="180.00">
                 <div class="frequency-title">Annuelle</div>
-                <p style="margin-bottom: 0.5rem;">150,00 € / an (soit 12,50 € / mois)</p>
-                <!-- Bannière pour abonnement annuel -->
+                <p>150,00 € / an (soit 12,50 € / mois)</p>
                 <div class="annual-banner">2 mois offerts</div>
               </div>
-              <!-- Formulaire de carte bancaire -->
               <div class="card-form-container">
-                <h3 style="font-size: 18px; margin-bottom: 1rem;">Carte bancaire</h3>
-                <!-- Numéro de carte -->
-                <label style="display: block; margin: 8px 0 4px;">Numéro de carte</label>
+                <h3>Carte bancaire</h3>
+                <label>Numéro de carte</label>
                 <div id="card-number-element" class="stripe-input"></div>
-                <!-- Date d'expiration -->
-                <label style="display: block; margin: 8px 0 4px;">Date d'expiration</label>
+                <label>Date d'expiration</label>
                 <div id="card-expiry-element" class="stripe-input"></div>
-                <!-- Code de sécurité (CVC) -->
-                <label style="display: block; margin: 8px 0 4px;">Code de sécurité</label>
+                <label>Code de sécurité</label>
                 <div id="card-cvc-element" class="stripe-input"></div>
-                <!-- Pays -->
-                <label style="display: block; margin: 8px 0 4px;">Pays</label>
-                <!-- Encapsulation du select pour un chevron plus esthétique -->
-                <div class="select-container" style="margin-bottom: 1rem;">
+                <label>Pays</label>
+                <div class="select-container">
                   <i class="fa-solid fa-chevron-down select-arrow"></i>
-                  <select id="card-country" class="form-control" style="padding-left: 14px;">
+                  <select id="card-country" class="form-control">
                     <option value="">Choisissez un pays</option>
                     <option value="FR">France</option>
                     <option value="BE">Belgique</option>
                     <option value="CH">Suisse</option>
                     <option value="CA">Canada</option>
                     <option value="US">États-Unis</option>
-                    <!-- etc. -->
                   </select>
                 </div>
               </div>
-              <div id="card-errors" role="alert" style="color: red; margin-top: 1rem;"></div>
+              <div id="card-errors" role="alert"></div>
             </div>
-            <!-- Colonne droite : Récapitulatif -->
             <div class="options-right-column">
               <div class="recap-card">
                 <h3 class="recap-title">RÉCAPITULATIF</h3>
-                <div class="recap-item">
-                  <span>Domiciliation - sans engagement</span>
-                  <span id="recap-domiciliation-final">15,00 €</span>
-                </div>
-                <div class="recap-item">
-                  <span>Réexpédition mensuelle sur demande</span>
-                  <span>Gratuit</span>
-                </div>
-                <div class="recap-total" id="recap-total-ht-final">
-                  <span id="total-label-ht-final" style="font-weight: bold;">TOTAL MENSUEL HT</span>
-                  <span id="total-ht-final" style="font-weight: bold;">15,00 €</span>
-                </div>
-                <div class="recap-total" id="recap-total-ttc-final">
-                  <span id="total-label-ttc-final" style="font-weight: bold;">TOTAL MENSUEL TTC</span>
-                  <span id="total-ttc-final" style="font-weight: bold; font-size: 24px;">18,00 €</span>
-                </div>
+                <div class="recap-item"><span>Domiciliation - sans engagement</span><span id="recap-domiciliation-final">15,00 €</span></div>
+                <div class="recap-item"><span>Réexpédition mensuelle sur demande</span><span>Gratuit</span></div>
+                <div class="recap-total" id="recap-total-ht-final"><span id="total-label-ht-final">TOTAL MENSUEL HT</span><span id="total-ht-final">15,00 €</span></div>
+                <div class="recap-total" id="recap-total-ttc-final"><span id="total-label-ttc-final">TOTAL MENSUEL TTC</span><span id="total-ttc-final">18,00 €</span></div>
               </div>
               <div class="button-center">
                 <button type="button" id="btn-step5" class="options-button">PAIEMENT</button>
@@ -788,350 +270,22 @@
           </div>
         </div>
 
-        <!-- Page 6 : Confirmation -->
+        <!-- Étape 6 : confirmation -->
         <div class="form-step" data-page="6">
-          <h2 style="font-size: 24px; margin-bottom: 20px; color: #333; text-align: center;">Paiement réussi !</h2>
-          <p style="font-size: 16px; color: #666; text-align: center; margin-bottom: 20px;">
-            Voici les informations qui t'intéressent :
-          </p>
-          <div style="background: #f8f9fb; padding: 20px; border-radius: 8px; text-align: center;">
-            <p style="font-size: 16px; color: #333;">
-              ID de souscription : <strong id="conf-sub-id"></strong>
-            </p>
-            <p style="font-size: 16px; color: #333;">
-              Prochaine facturation : <strong id="conf-next-bill"></strong>
-            </p>
+          <h2>Paiement réussi !</h2>
+          <p>Voici les informations qui t'intéressent :</p>
+          <div class="recap-card">
+            <p>ID de souscription : <strong id="conf-sub-id"></strong></p>
+            <p>Prochaine facturation : <strong id="conf-next-bill"></strong></p>
           </div>
         </div>
-
       </form>
     </div>
   </div>
 
-  <script>
-    // Variables globales
-    let currentPage = 1;
-    const formSteps = document.querySelectorAll(".form-step");
-    const stepsBar = document.getElementById("steps-bar");
-    const formContainer = document.getElementById("form-container");
-    let imageLoaded = false;
-    const addressImage = document.getElementById('address-image');
-    const imagePlaceholder = document.getElementById('image-placeholder');
-    imagePlaceholder.classList.add('loading-shimmer');
-
-    // Préchargement de l'image
-    function preloadImage() {
-      const img = new Image();
-      img.onload = function() {
-        imageLoaded = true;
-        addressImage.classList.add('loaded');
-        imagePlaceholder.style.display = 'none';
-      };
-      img.onerror = function() {
-        console.error("Erreur lors du chargement de l'image");
-        imagePlaceholder.innerHTML = "Impossible de charger l'image";
-      };
-      img.src = addressImage.src;
-    }
-
-    // Navigation entre pages et mise à jour de la barre d'étapes
-    function showPage(pageNumber) {
-      formSteps.forEach(page => {
-        const pg = parseInt(page.getAttribute("data-page"), 10);
-        page.classList.toggle("active", pg === pageNumber);
-      });
-      let progressStep = 1;
-      if (pageNumber === 1) {
-        progressStep = 1;
-      } else if (pageNumber === 2 || pageNumber === 3) {
-        progressStep = 2;
-      } else if (pageNumber === 4) {
-        progressStep = 3;
-      } else if (pageNumber === 5) {
-        progressStep = 4;
-      } else if (pageNumber === 6) {
-        progressStep = 5;
-      }
-      stepsBar.querySelectorAll(".step-item").forEach(item => {
-        const itemStep = parseInt(item.getAttribute("data-step"), 10);
-        item.classList.remove("active", "completed");
-        if (itemStep < progressStep) {
-          item.classList.add("completed");
-        } else if (itemStep === progressStep) {
-          item.classList.add("active");
-        }
-      });
-      if (progressStep < 3) {
-        stepsBar.classList.remove("step-wide");
-        stepsBar.classList.add("step-narrow");
-        formContainer.style.maxWidth = "500px";
-        formContainer.style.width = "100%";
-      } else {
-        stepsBar.classList.remove("step-narrow");
-        stepsBar.classList.add("step-wide");
-        formContainer.style.maxWidth = "900px";
-        formContainer.style.width = "100%";
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-    
-    function goToPage(pageNumber) {
-      currentPage = pageNumber;
-      showPage(pageNumber);
-    }
-    
-    // Initialisation
-    showPage(currentPage);
-    preloadImage();
-    if (isImageCached(addressImage.src)) {
-      imageLoaded = true;
-      addressImage.classList.add('loaded');
-      imagePlaceholder.style.display = 'none';
-    }
-    function isImageCached(src) {
-      const img = new Image();
-      img.src = src;
-      return img.complete;
-    }
-    
-    // Page 1 : Validation de l'email et du téléphone
-    const btnStep1 = document.getElementById("btn-step1");
-    const email = document.getElementById("email");
-    const phone = document.getElementById("telephone");
-    const errEmail = document.getElementById("error-email");
-    const errPhone = document.getElementById("error-telephone");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    email.addEventListener("focus", function() {
-      if (!imageLoaded) { preloadImage(); }
-    });
-    btnStep1.addEventListener("click", () => {
-      errEmail.classList.remove("visible");
-      errPhone.classList.remove("visible");
-      errEmail.textContent = "";
-      errPhone.textContent = "";
-      let isValid = true;
-      const emailVal = email.value.trim();
-      const phoneVal = phone.value.trim();
-      if (!emailVal) {
-        errEmail.textContent = "Ce champ est requis";
-        errEmail.classList.add("visible");
-        email.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else if (!emailRegex.test(emailVal)) {
-        errEmail.textContent = "Adresse e-mail invalide";
-        errEmail.classList.add("visible");
-        email.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else { email.style.borderColor = '#ccc'; }
-      if (!phoneVal) {
-        errPhone.textContent = "Ce champ est requis";
-        errPhone.classList.add("visible");
-        phone.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else { phone.style.borderColor = '#ccc'; }
-      if (isValid) { goToPage(2); }
-    });
-    
-    // Passage de la page 2 à la page 3
-    const btnStep2Part1 = document.getElementById("btn-step2-part1");
-    btnStep2Part1.addEventListener("click", () => { goToPage(3); });
-    
-    // Page 3 : Validation des informations sur la société
-    const btnStep3 = document.getElementById("btn-step3");
-    const formeJuridique = document.getElementById("forme-juridique");
-    const nomSociete = document.getElementById("nom-societe");
-    const radiosSocieteCree = document.getElementsByName("societe-cree");
-    const sirenField = document.getElementById("siren-field");
-    const numSiren = document.getElementById("num-siren");
-    const microEntrepriseMessage = document.getElementById("micro-entreprise-message");
-    const errorForme = document.getElementById("error-forme");
-    const errorNomSociete = document.getElementById("error-nomsociete");
-    const errorSocCree = document.getElementById("error-soccree");
-    const errorSiren = document.getElementById("error-siren");
-    formeJuridique.addEventListener("change", () => {
-      if (formeJuridique.value === "Micro-entreprise") {
-        microEntrepriseMessage.style.display = "block";
-      } else { microEntrepriseMessage.style.display = "none"; }
-    });
-    btnStep3.addEventListener("click", () => {
-      errorForme.textContent = "";
-      errorNomSociete.textContent = "";
-      errorSocCree.textContent = "";
-      errorSiren.textContent = "";
-      errorForme.classList.remove("visible");
-      errorNomSociete.classList.remove("visible");
-      errorSocCree.classList.remove("visible");
-      errorSiren.classList.remove("visible");
-      let isValid = true;
-      if (!formeJuridique.value) {
-        errorForme.textContent = "Ce champ est requis";
-        errorForme.classList.add("visible");
-        formeJuridique.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else { formeJuridique.style.borderColor = '#ccc'; }
-      if (!nomSociete.value.trim()) {
-        errorNomSociete.textContent = "Ce champ est requis";
-        errorNomSociete.classList.add("visible");
-        nomSociete.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else { nomSociete.style.borderColor = '#ccc'; }
-      let societeCreeValue = "";
-      radiosSocieteCree.forEach(radio => { if (radio.checked) { societeCreeValue = radio.value; } });
-      if (!societeCreeValue) {
-        errorSocCree.textContent = "Ce champ est requis";
-        errorSocCree.classList.add("visible");
-        isValid = false;
-      } else { errorSocCree.classList.remove("visible"); }
-      if (societeCreeValue === "oui" && !numSiren.value.trim()) {
-        errorSiren.textContent = "Ce champ est requis";
-        errorSiren.classList.add("visible");
-        numSiren.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else if (societeCreeValue === "oui") {
-        numSiren.style.borderColor = '#ccc';
-      }
-      if (isValid) { goToPage(4); }
-    });
-    radiosSocieteCree.forEach(radio => {
-      radio.addEventListener("change", () => {
-        if (radio.value === "oui" && radio.checked) {
-          sirenField.style.display = 'block';
-        } else if (radio.value === "non" && radio.checked) {
-          sirenField.style.display = 'none';
-        }
-      });
-    });
-    
-    // Page 4 : Validation de l'adresse de réexpédition
-    const btnStep4 = document.getElementById("btn-step4");
-    const adressePrincipale = document.getElementById("adresse-principale");
-    const errorMessageAdresse = document.getElementById("error-message-adresse");
-    btnStep4.addEventListener("click", () => {
-      let isValid = true;
-      if (!adressePrincipale.value.trim()) {
-        errorMessageAdresse.textContent = "Ce champ est requis";
-        errorMessageAdresse.classList.add("visible");
-        adressePrincipale.style.borderColor = '#e74c3c';
-        isValid = false;
-      } else {
-        errorMessageAdresse.classList.remove("visible");
-        adressePrincipale.style.borderColor = '#ddd';
-      }
-      if (!adressePrincipale.value.trim()) { isValid = false; }
-      if (isValid) { goToPage(5); }
-    });
-    
-    // Gestion de la sélection des options de paiement (Page 5)
-    const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
-    if (paymentOptions.length > 0) {
-      paymentOptions.forEach(option => {
-        option.addEventListener("click", function() {
-          paymentOptions.forEach(opt => opt.classList.remove("selected"));
-          this.classList.add("selected");
-          const priceHT = this.getAttribute("data-payment-price-ht");
-          const priceTTC = this.getAttribute("data-payment-price-ttc");
-          const titleText = this.querySelector(".frequency-title").innerText;
-          let label = "MENSUEL";
-          if (titleText.toLowerCase().includes("annuelle") || titleText.toLowerCase().includes("annuel")) {
-            label = "ANNUEL";
-          }
-          document.getElementById("total-label-ht-final").innerText = "TOTAL " + label + " HT";
-          document.getElementById("total-label-ttc-final").innerText = "TOTAL " + label + " TTC";
-          document.getElementById("total-ht-final").innerText = parseFloat(priceHT).toFixed(2).replace(".", ",") + " €";
-          document.getElementById("total-ttc-final").innerText = parseFloat(priceTTC).toFixed(2).replace(".", ",") + " €";
-          document.getElementById("recap-domiciliation-final").innerText = parseFloat(priceHT).toFixed(2).replace(".", ",") + " €";
-        });
-      });
-    }
-    
-    // Intégration de Stripe avec champs séparés
-    const stripe = Stripe("pk_live_51QfLJMLEm2PALFULUxOdeLv5wodbKbxcGyNSg7Y8wxWAowohqOnxptD1mVIXwhYR6rjfanEOhEbYTcwHfKF1OhQL00qjGfTbhx");
-    const elements = stripe.elements();
-    const styleStripe = {
-      base: {
-        color: "#32325d",
-        fontFamily: 'Nunito, sans-serif',
-        fontSize: "16px",
-        "::placeholder": { color: "#ccc" }
-      },
-      invalid: {
-        color: "#e74c3c"
-      }
-    };
-    const cardNumberElement = elements.create("cardNumber", { style: styleStripe });
-    const cardExpiryElement = elements.create("cardExpiry", { style: styleStripe });
-    const cardCvcElement = elements.create("cardCvc", { style: styleStripe });
-    cardNumberElement.mount("#card-number-element");
-    cardExpiryElement.mount("#card-expiry-element");
-    cardCvcElement.mount("#card-cvc-element");
-    function handleCardError(event) {
-      const displayError = document.getElementById("card-errors");
-      if (event.error) {
-        displayError.textContent = event.error.message;
-      } else {
-        displayError.textContent = "";
-      }
-    }
-    cardNumberElement.on("change", handleCardError);
-    cardExpiryElement.on("change", handleCardError);
-    cardCvcElement.on("change", handleCardError);
-    
-    // Bouton de paiement sur la page 5
-    const btnStep5 = document.getElementById("btn-step5");
-    if (btnStep5) {
-      btnStep5.addEventListener("click", async () => {
-        const country = document.getElementById("card-country").value || "FR";
-        const { token, error } = await stripe.createToken(cardNumberElement, {
-          name: "Nom Sur La Carte",
-          address_country: country
-        });
-        if (error) {
-          document.getElementById("card-errors").textContent = error.message;
-          return;
-        }
-
-        // Détecte le plan choisi
-        const selectedPlan = document
-          .querySelector(".frequency-option.selected")
-          .getAttribute("data-payment-price-ht") === "15.00"
-          ? "mensuel"
-          : "annuel";
-        const clientEmail = document.getElementById("email").value;
-
-        try {
-          // Appelle l'endpoint pour créer une souscription
-          const response = await fetch("https://domiciliation-form-production.up.railway.app/create-subscription", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              stripeToken: token.id,
-              plan: selectedPlan,
-              email: clientEmail
-            })
-          });
-
-          const data = await response.json();
-
-          // Gère la réponse
-          if (data.subscription && data.subscription.status === "active") {
-            goToPage(6);
-            document.getElementById("conf-sub-id").innerText = data.subscription.id;
-            document.getElementById("conf-next-bill").innerText =
-              new Date(data.subscription.current_period_end * 1000).toLocaleDateString();
-          } else {
-            throw new Error(data.error || `status ${data.subscription.status}`);
-          }
-        } catch (err) {
-          alert(`Erreur paiement : ${err.message}`);
-        }
-      });
-    }
-    
-    function isImageCached(src) {
-      const img = new Image();
-      img.src = src;
-      return img.complete;
-    }
-  </script>
+  <!-- Modules JavaScript -->
+  <script src="js/navigation.js"></script>
+  <script src="js/validation.js"></script>
+  <script src="js/stripe.js"></script>
 </body>
 </html>
