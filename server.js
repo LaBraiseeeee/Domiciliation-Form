@@ -1,106 +1,119 @@
 // server.js
-require('dotenv').config(); // Charge les variables d'environnement depuis .env
+require('dotenv').config(); // charge .env
 
-// Vérification du chargement des clés Stripe
-console.log('▶️ STRIPE_SECRET_KEY loaded:', Boolean(process.env.STRIPE_SECRET_KEY));
-console.log('▶️ STRIPE_WEBHOOK_SECRET loaded:', Boolean(process.env.STRIPE_WEBHOOK_SECRET));
+const express   = require('express');
+const path      = require('path');
+const bodyParser= require('body-parser');
+const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const path = require('path');
-const express = require('express');
 const app = express();
 
-// Initialise Stripe avec ta clé secrète
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// 🚨 Vérifie que tes ENV sont bien chargées
+console.log('▶️ STRIPE_SECRET_KEY ?', Boolean(process.env.STRIPE_SECRET_KEY));
+console.log('▶️ STRIPE_WEBHOOK_SECRET ?', Boolean(process.env.STRIPE_WEBHOOK_SECRET));
+console.log('▶️ PRICE_ID_MENSUEL ?', Boolean(process.env.PRICE_ID_MENSUEL));
+console.log('▶️ PRICE_ID_ANNUEL ?', Boolean(process.env.PRICE_ID_ANNUEL));
 
-// Secret pour valider les webhooks
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-// ------- SERVIR LES FICHIERS STATIQUES -------
-// On expose tout le contenu de /public (ton index.html, CSS, JS client, etc.)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ------- ROUTES WEBHOOK STRIPE -------
-// On doit parser la requête en brut pour valider la signature
+// 1) ROUTE WEBHOOK (body brut pour verifier la signature)
 app.post(
   '/webhook',
-  express.raw({ type: 'application/json' }),
+  bodyParser.raw({ type: 'application/json' }),
   (req, res) => {
-    const sig = req.headers['stripe-signature'];
+    const sig   = req.headers['stripe-signature'];
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      event = stripeLib.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
     } catch (err) {
-      console.error('⚠️  Webhook signature verification failed:', err.message);
+      console.error('⚠️ Webhook signature invalid:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Traite les événements qui t’intéressent
+    // traite les events utiles
     switch (event.type) {
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
-        console.log('✅  Paiement récurrent réussi pour la souscription', invoice.subscription);
-        // → ici tu peux mettre à jour ta base, envoyer un email, etc.
+      case 'invoice.payment_succeeded':
+        console.log('✅ Paiement OK pour subscription', event.data.object.subscription);
         break;
-      }
+      case 'invoice.payment_failed':
+        console.log('❌ Paiement échoué pour subscription', event.data.object.subscription);
+        break;
       default:
-        console.log(`ℹ️  Événement non géré : ${event.type}`);
+        console.log('ℹ️ Événement non géré :', event.type);
     }
 
-    // Répond OK à Stripe
     res.json({ received: true });
   }
 );
 
-// ------- PARSEUR JSON GLOBAL -------
-// Tout le reste des endpoints reçoit du JSON déjà parsé
+// 2) JSON parser pour le reste
 app.use(express.json());
 
-// ------- ROUTES API -------
+// 3) Sert tes fichiers statiques (public/index.html, styles.css, script.js…)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Health check
-app.get('/', (req, res) => {
-  res.send('API Domiciliation OK ✅');
+// 4) ROUTES API
+
+// healthcheck
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK' });
 });
 
-// Création de la souscription
-app.post('/create-subscription', async (req, res) => {
+// création d’abonnement avec SCA
+app.post('/api/create-subscription', async (req, res) => {
   const { stripeToken, plan, email } = req.body;
+  if (!stripeToken || !plan || !email) {
+    return res.status(400).json({ error: 'Paramètres manquants.' });
+  }
 
-  // Vérification du plan
-  if (!['mensuel', 'annuel'].includes(plan)) {
-    return res.status(400).json({ error: 'Plan non reconnu' });
+  // mappe plan→priceId depuis tes ENV
+  const priceId = plan === 'mensuel'
+    ? process.env.PRICE_ID_MENSUEL
+    : process.env.PRICE_ID_ANNUEL;
+
+  if (!priceId) {
+    return res.status(400).json({ error: 'Plan invalide ou non configuré.' });
   }
 
   try {
-    // 1) Crée le client Stripe et attache la source
-    const customer = await stripe.customers.create({
+    // 1) création customer et attache la carte
+    const customer = await stripeLib.customers.create({
       email,
-      source: stripeToken,
+      source: stripeToken
     });
 
-    // 2) Détermine l'ID de prix selon le plan
-    const priceId = plan === 'mensuel'
-      ? 'price_1REmAAPs1z3kB9qHlghNeGeC'    // Price ID test mensuel
-      : 'price_VOTRE_ID_ANNUEL_TEST';      // Remplace par ton Price ID test annuel
-
-    // 3) Crée la souscription
-    const subscription = await stripe.subscriptions.create({
+    // 2) création de la subscription en mode incomplete pour 3D Secure
+    const subscription = await stripeLib.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
-      expand: ['latest_invoice.payment_intent'],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent']
     });
 
-    // Retourne la souscription
-    res.json({ subscription });
-  } catch (error) {
-    console.error('❌  Erreur lors de la création de la souscription :', error);
-    res.status(500).json({ error: error.message });
+    const pi = subscription.latest_invoice.payment_intent;
+
+    // 3) renvoie clientSecret + subscriptionId
+    res.json({
+      subscriptionId: subscription.id,
+      clientSecret: pi.client_secret,
+      status: subscription.status
+    });
+  } catch (err) {
+    console.error('❌ Erreur création subscription:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ------- DÉMARRAGE DU SERVEUR -------
+// 5) Fallback SPA : toutes les routes non-API redirigent vers index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 6) Démarrage
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+  console.log(`🚀 Serveur lancé sur le port ${PORT}`);
 });
