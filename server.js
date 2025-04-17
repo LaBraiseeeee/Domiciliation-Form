@@ -1,25 +1,25 @@
 // server.js
 require('dotenv').config(); // charge .env
 
-const express   = require('express');
-const path      = require('path');
-const bodyParser= require('body-parser');
-const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const express    = require('express');
+const path       = require('path');
+const bodyParser = require('body-parser');
+const stripeLib  = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
-// 🚨 Vérifie que tes ENV sont bien chargées
-console.log('▶️ STRIPE_SECRET_KEY ?', Boolean(process.env.STRIPE_SECRET_KEY));
-console.log('▶️ STRIPE_WEBHOOK_SECRET ?', Boolean(process.env.STRIPE_WEBHOOK_SECRET));
-console.log('▶️ PRICE_ID_MENSUEL ?', Boolean(process.env.PRICE_ID_MENSUEL));
-console.log('▶️ PRICE_ID_ANNUEL ?', Boolean(process.env.PRICE_ID_ANNUEL));
+// 🚨 Affiche la VALEUR brute de tes ENV pour debug
+console.log('▶️ STRIPE_SECRET_KEY     =', process.env.STRIPE_SECRET_KEY);
+console.log('▶️ STRIPE_WEBHOOK_SECRET =', process.env.STRIPE_WEBHOOK_SECRET);
+console.log('▶️ PRICE_ID_MENSUEL      =', process.env.PRICE_ID_MENSUEL);
+console.log('▶️ PRICE_ID_ANNUEL       =', process.env.PRICE_ID_ANNUEL);
 
 // 1) ROUTE WEBHOOK (body brut pour verifier la signature)
 app.post(
   '/webhook',
   bodyParser.raw({ type: 'application/json' }),
   (req, res) => {
-    const sig   = req.headers['stripe-signature'];
+    const sig = req.headers['stripe-signature'];
     let event;
 
     try {
@@ -52,7 +52,7 @@ app.post(
 // 2) JSON parser pour le reste
 app.use(express.json());
 
-// 3) Sert tes fichiers statiques (public/index.html, styles.css, script.js…)
+// 3) Sert tes fichiers statiques (public/index.html, css/, js/)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 4) ROUTES API
@@ -69,7 +69,7 @@ app.post('/api/create-subscription', async (req, res) => {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
 
-  // mappe plan→priceId depuis tes ENV
+  // mappe plan → priceId depuis tes ENV
   const priceId = plan === 'mensuel'
     ? process.env.PRICE_ID_MENSUEL
     : process.env.PRICE_ID_ANNUEL;
@@ -112,7 +112,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 6) Démarrage
+// 6) Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur lancé sur le port ${PORT}`);
