@@ -249,7 +249,7 @@ paymentOptions.forEach(opt => {
 // --------------------------------------
 
 // Initialise Stripe en test pour tes essais
-const stripe = Stripe("pk_test_TOnCLE_TESTXXXXXXXXXXXXXXXX");
+const stripe = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
 const elements = stripe.elements();
 
 const style = {
