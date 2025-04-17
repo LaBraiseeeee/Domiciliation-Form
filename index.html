@@ -1002,28 +1002,43 @@
       if (isValid) { goToPage(5); }
     });
     
-    // Gestion de la sélection des options de paiement (Page 5)
-    const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
-    if (paymentOptions.length > 0) {
-      paymentOptions.forEach(option => {
-        option.addEventListener("click", function() {
-          paymentOptions.forEach(opt => opt.classList.remove("selected"));
-          this.classList.add("selected");
-          const priceHT = this.getAttribute("data-payment-price-ht");
-          const priceTTC = this.getAttribute("data-payment-price-ttc");
-          const titleText = this.querySelector(".frequency-title").innerText;
-          let label = "MENSUEL";
-          if (titleText.toLowerCase().includes("annuelle") || titleText.toLowerCase().includes("annuel")) {
-            label = "ANNUEL";
-          }
-          document.getElementById("total-label-ht-final").innerText = "TOTAL " + label + " HT";
-          document.getElementById("total-label-ttc-final").innerText = "TOTAL " + label + " TTC";
-          document.getElementById("total-ht-final").innerText = parseFloat(priceHT).toFixed(2).replace(".", ",") + " €";
-          document.getElementById("total-ttc-final").innerText = parseFloat(priceTTC).toFixed(2).replace(".", ",") + " €";
-          document.getElementById("recap-domiciliation-final").innerText = parseFloat(priceHT).toFixed(2).replace(".", ",") + " €";
-        });
-      });
-    }
+   // Gestion de la sélection des options de paiement (Page 5)
+const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
+if (paymentOptions.length > 0) {
+  paymentOptions.forEach(option => {
+    option.addEventListener("click", function() {
+      // 1) Visuel : on bascule la classe "selected"
+      paymentOptions.forEach(opt => opt.classList.remove("selected"));
+      this.classList.add("selected");
+
+      // 2) Récupère le priceId pour Stripe
+      const priceId = this.getAttribute("data-price-id");
+
+      // 3) Récupère les montants HT et TTC depuis le <p> (ex : "15,00 € / mois (soit 180,00 € / an)")
+      const priceText = this.querySelector("p").innerText;
+      // On extrait les deux occurrences de "XX,XX €"
+      const matches = priceText.match(/([\d., ]+)€/g);
+      const priceHT  = matches[0].trim();
+      const priceTTC = matches[1].trim();
+
+      // 4) Détermine si on est sur un plan annuel ou mensuel
+      const titleText = this.querySelector(".frequency-title").innerText.toLowerCase();
+      const isAnnual  = titleText.includes("annuel");
+      const label     = isAnnual ? "ANNUEL" : "MENSUEL";
+
+      // 5) Mise à jour du récapitulatif
+      document.getElementById("total-label-ht-final").innerText  = `TOTAL ${label} HT`;
+      document.getElementById("total-label-ttc-final").innerText = `TOTAL ${label} TTC`;
+      document.getElementById("total-ht-final").innerText        = priceHT;
+      document.getElementById("total-ttc-final").innerText       = priceTTC;
+      document.getElementById("recap-domiciliation-final").innerText = priceHT;
+
+      // (Lorsque tu créeras la souscription, tu pourras relire ce priceId via :)
+      // const selectedPriceId = document.querySelector(".frequency-option.selected").getAttribute("data-price-id");
+    });
+  });
+}
+
     
     // Intégration de Stripe avec champs séparés
     const stripe = Stripe("pk_live_51QfLJMLEm2PALFULUxOdeLv5wodbKbxcGyNSg7Y8wxWAowohqOnxptD1mVIXwhYR6rjfanEOhEbYTcwHfKF1OhQL00qjGfTbhx");
