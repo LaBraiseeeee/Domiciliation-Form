@@ -299,20 +299,23 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     });
     const data = await res.json();
 
-    if (data.status === "active" && data.clientSecret) {
-      // SCA 3D Secure
-      const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
-      if (confirmError) {
-        alert("3D Secure échoué : " + confirmError.message);
-        return;
-      }
-      goToPage(6);
-      document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
-      document.getElementById("conf-next-bill").innerText =
-        new Date(Date.now() + 30*24*3600*1000).toLocaleDateString(); // ou calcul depuis le serveur
-    } else {
-      throw new Error(data.error || "Statut inattendu");
+    // Nouveau : on ne teste plus data.status, mais on confirme directement
+    if (!data.clientSecret) {
+      throw new Error(data.error || "Pas de clientSecret renvoyé");
     }
+
+    // Gestion du 3D Secure
+    const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
+    if (confirmError) {
+      throw new Error("Erreur 3D Secure : " + confirmError.message);
+    }
+
+    // Tout est validé, on affiche la confirmation
+    goToPage(6);
+    document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
+    // Si ton back te renvoie la date next billing, utilise-la ici
+    document.getElementById("conf-next-bill").innerText =
+      new Date(Date.now() + 30*24*3600*1000).toLocaleDateString();
   } catch (err) {
     alert(`Erreur paiement : ${err.message}`);
   }
