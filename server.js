@@ -2,11 +2,12 @@
 require('dotenv').config();        // Charge les variables d'environnement depuis .env
 const express = require('express');
 const app = express();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Utilise ta clé secrète de test
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);  // Ta clé secrète Stripe (mode test)
 
-app.use(express.json()); // Pour parser le JSON des requêtes
+// Parse le JSON des requêtes
+app.use(express.json());
 
-// Route de santé
+// Route de santé pour vérifier que le serveur tourne
 app.get('/', (req, res) => {
   res.send('API Domiciliation OK ✅');
 });
@@ -15,44 +16,41 @@ app.get('/', (req, res) => {
 app.post('/create-subscription', async (req, res) => {
   const { stripeToken, plan, email } = req.body;
 
-  // Vérification du plan
+  // Vérifie que le plan est valide
   if (!['mensuel', 'annuel'].includes(plan)) {
     return res.status(400).json({ error: 'Plan non reconnu' });
   }
 
   try {
-    // 1) Créer le client et attacher la méthode de paiement
+    // 1) Crée le client et attache la source (tok_…)
     const customer = await stripe.customers.create({
       email,
-      payment_method: stripeToken,
-      invoice_settings: {
-        default_payment_method: stripeToken
-      }
+      source: stripeToken
     });
 
-    // 2) Choisir l'ID de tarif (Price) de test
+    // 2) Sélectionne l'ID de prix de test selon le plan
     const priceId = plan === 'mensuel'
-      ? 'price_1REmAAPs1z3kB9qHlghNeGeC'   // Price ID test pour abonnement mensuel
+      ? 'price_1REmAAPs1z3kB9qHlghNeGeC'    // Price ID test pour abonnement mensuel
       : 'price_VOTRE_ID_ANNUEL_TEST';      // Remplace par ton Price ID test pour abonnement annuel
 
-    // 3) Créer la souscription et forcer le paiement immédiat
+    // 3) Crée la souscription sur Stripe
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
-      expand: ['latest_invoice.payment_intent'],
-      default_payment_method: stripeToken
+      expand: ['latest_invoice.payment_intent']
     });
 
+    // Retourne l'objet subscription
     res.json({ subscription });
   } catch (error) {
-    console.error('Erreur création souscription :', error);
+    console.error('Erreur lors de la création de la souscription :', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // (Optionnel) Endpoint pour les webhooks Stripe
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  // À compléter pour gérer les événements Stripe si besoin
+  // À compléter : valider le signature et traiter les events Stripe
   res.json({ received: true });
 });
 
