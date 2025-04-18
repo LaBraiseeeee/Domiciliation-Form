@@ -4,6 +4,8 @@
 
 // Variables globales
 let currentPage = 1;
+let userEmail = ""; // on stocke l'email saisi à l'étape 1
+
 const formSteps     = document.querySelectorAll(".form-step");
 const stepsBar      = document.getElementById("steps-bar");
 const formContainer = document.getElementById("form-container");
@@ -130,7 +132,10 @@ btnStep1.addEventListener("click", () => {
     phone.style.borderColor = "#ccc";
   }
 
-  if (valid) goToPage(2);
+  if (valid) {
+    userEmail = eVal;      // on stocke l'email pour l'étape 5
+    goToPage(2);
+  }
 });
 
 // Étape 2 : passage direct à 3
@@ -205,9 +210,9 @@ radiosSocCree.forEach(radio => {
 });
 
 // Étape 4 : adresse de réexpédition
-const btnStep4         = document.getElementById("btn-step4");
+const btnStep4          = document.getElementById("btn-step4");
 const adressePrincipale = document.getElementById("adresse-principale");
-const errAdresse       = document.getElementById("error-message-adresse");
+const errAdresse        = document.getElementById("error-message-adresse");
 
 btnStep4.addEventListener("click", () => {
   let valid = true;
@@ -288,10 +293,10 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // **NOUVELLE LOGIQUE** : récupère l’ID du tarif sélectionné
+  // Récupère l’ID du tarif sélectionné
   const selectedElem = document.querySelector(".frequency-option.selected");
-  const priceId = selectedElem.dataset.priceId;  
-  const clientEmail = document.getElementById("email").value;
+  const priceId = selectedElem.dataset.priceId;
+  const clientEmail = userEmail; // on utilise l'email stocké à l'étape 1
 
   try {
     const res = await fetch("/api/create-subscription", {
