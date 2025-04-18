@@ -293,8 +293,8 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // Récupère l’ID du tarif sélectionné
-  const selectedElem = document.querySelector(".frequency-option.selected");
+  // Récupère l’ID du tarif sélectionné **uniquement** dans le conteneur de paiement
+  const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
   const priceId = selectedElem.dataset.priceId;
   const clientEmail = userEmail; // on utilise l'email stocké à l'étape 1
 
