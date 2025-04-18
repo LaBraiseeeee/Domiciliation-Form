@@ -14,7 +14,7 @@ console.log('▶️ STRIPE_WEBHOOK_SECRET =', process.env.STRIPE_WEBHOOK_SECRET)
 console.log('▶️ PRICE_ID_MENSUEL      =', process.env.PRICE_ID_MENSUEL);
 console.log('▶️ PRICE_ID_ANNUEL       =', process.env.PRICE_ID_ANNUEL);
 
-// 1) ROUTE WEBHOOK (body brut pour verifier la signature)
+// 1) ROUTE WEBHOOK (body brut pour vérifier la signature)
 app.post(
   '/webhook',
   bodyParser.raw({ type: 'application/json' }),
@@ -33,7 +33,7 @@ app.post(
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // traite les events utiles
+    // Traite les events utiles
     switch (event.type) {
       case 'invoice.payment_succeeded':
         console.log('✅ Paiement OK pour subscription', event.data.object.subscription);
@@ -65,11 +65,13 @@ app.get('/api/health', (req, res) => {
 // création d’abonnement avec SCA
 app.post('/api/create-subscription', async (req, res) => {
   const { stripeToken, priceId, email } = req.body;
+
+  // Vérification des paramètres
   if (!stripeToken || !priceId || !email) {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
 
-  // Vérifie que le priceId fourni est bien l’un de ceux configurés
+  // Vérifie que le priceId fourni est l’un de ceux configurés
   const allowed = [
     process.env.PRICE_ID_MENSUEL,
     process.env.PRICE_ID_ANNUEL
