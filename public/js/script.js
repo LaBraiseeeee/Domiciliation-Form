@@ -133,7 +133,7 @@ btnStep1.addEventListener("click", () => {
   }
 
   if (valid) {
-    userEmail = eVal;      // on stocke l'email pour l'étape 5
+    userEmail = eVal;      // on stocke l'email pour l'étape 5
     goToPage(2);
   }
 });
@@ -297,6 +297,13 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
   const selectedElem = document.querySelector(".frequency-option.selected");
   const priceId = selectedElem.dataset.priceId;
   const clientEmail = userEmail; // on utilise l'email stocké à l'étape 1
+
+  // **LOG pour debug** : on affiche ce qu'on envoie au serveur
+  console.log("Envoi create-subscription avec :", {
+    stripeToken: token.id,
+    priceId,
+    email: clientEmail
+  });
 
   try {
     const res = await fetch("/api/create-subscription", {
