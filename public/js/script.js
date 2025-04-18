@@ -288,9 +288,9 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // Récupère l'ID du price sélectionné
+  // **NOUVELLE LOGIQUE** : récupère l’ID du tarif sélectionné
   const selectedElem = document.querySelector(".frequency-option.selected");
-  const priceId = selectedElem.dataset.priceId;
+  const priceId = selectedElem.dataset.priceId;  
   const clientEmail = document.getElementById("email").value;
 
   try {
