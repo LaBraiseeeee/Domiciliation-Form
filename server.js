@@ -64,6 +64,9 @@ app.get('/api/health', (req, res) => {
 
 // création d’abonnement avec SCA
 app.post('/api/create-subscription', async (req, res) => {
+  // Ajout d'un log pour voir le contenu du body reçu
+  console.log('📥 Payload /create-subscription:', req.body);
+
   const { stripeToken, priceId, email } = req.body;
 
   // Vérification des paramètres
