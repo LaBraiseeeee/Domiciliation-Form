@@ -288,6 +288,7 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
+  // Récupère l'ID du price sélectionné
   const selectedElem = document.querySelector(".frequency-option.selected");
   const priceId = selectedElem.dataset.priceId;
   const clientEmail = document.getElementById("email").value;
@@ -309,6 +310,7 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
       throw new Error("Erreur 3D Secure : " + confirmError.message);
     }
 
+    // Passe à la page de confirmation
     goToPage(6);
     document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
     document.getElementById("conf-next-bill").innerText =
