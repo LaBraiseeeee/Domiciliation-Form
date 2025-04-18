@@ -237,8 +237,8 @@ paymentOptions.forEach(opt => {
 
     document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
     document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".","," ) + " €";
-    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".","," ) + " €";
+    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".",",") + " €";
+    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
       parseFloat(ht).toFixed(2).replace(".",",") + " €";
   });
@@ -288,14 +288,15 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  const plan        = document.querySelector(".frequency-option.selected").dataset.paymentPriceHt === "15.00" ? "mensuel" : "annuel";
+  const selectedElem = document.querySelector(".frequency-option.selected");
+  const priceId = selectedElem.dataset.priceId;
   const clientEmail = document.getElementById("email").value;
 
   try {
     const res = await fetch("/api/create-subscription", {
       method: "POST",
       headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ stripeToken: token.id, plan, email: clientEmail })
+      body: JSON.stringify({ stripeToken: token.id, priceId, email: clientEmail })
     });
     const data = await res.json();
 
