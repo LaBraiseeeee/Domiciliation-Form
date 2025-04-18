@@ -134,7 +134,8 @@ btnStep1.addEventListener("click", () => {
 });
 
 // Étape 2 : passage direct à 3
-document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
+const btnStep2 = document.getElementById("btn-step2-part1");
+btnStep2.addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
@@ -234,8 +235,8 @@ paymentOptions.forEach(opt => {
     const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
     const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
 
-    document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
-    document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
+    document.getElementById("total-label-ht-final").innerText  = TOTAL ${lbl} HT;
+    document.getElementById("total-label-ttc-final").innerText = TOTAL ${lbl} TTC;
     document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".",",")+" €";
     document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",")+" €";
     document.getElementById("recap-domiciliation-final").innerText =
@@ -287,9 +288,7 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
--  const plan        = document.querySelector(".frequency-option.selected").dataset.paymentPriceHt === "15.00" ? "mensuel" : "annuel";
-+  // Lecture directe du plan depuis data-plan
-+  const plan = document.querySelector(".frequency-option.selected").dataset.plan;
+  const plan        = document.querySelector(".frequency-option.selected").dataset.paymentPriceHt === "15.00" ? "mensuel" : "annuel";
   const clientEmail = document.getElementById("email").value;
 
   try {
@@ -300,6 +299,7 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     });
     const data = await res.json();
 
+    // Nouveau : on ne teste plus data.status, mais on confirme directement
     if (!data.clientSecret) {
       throw new Error(data.error || "Pas de clientSecret renvoyé");
     }
@@ -313,9 +313,10 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     // Tout est validé, on affiche la confirmation
     goToPage(6);
     document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
+    // Si ton back te renvoie la date next billing, utilise-la ici
     document.getElementById("conf-next-bill").innerText =
       new Date(Date.now() + 30*24*3600*1000).toLocaleDateString();
   } catch (err) {
-    alert(`Erreur paiement : ${err.message}`);
+    alert(Erreur paiement : ${err.message});
   }
 });
