@@ -235,12 +235,12 @@ paymentOptions.forEach(opt => {
     const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
     const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
 
-    document.getElementById("total-label-ht-final").innerText  = TOTAL ${lbl} HT;
-    document.getElementById("total-label-ttc-final").innerText = TOTAL ${lbl} TTC;
-    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".",",")+" €";
-    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",")+" €";
+    document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
+    document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
+    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".","," ) + " €";
+    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".","," ) + " €";
     document.getElementById("recap-domiciliation-final").innerText =
-      parseFloat(ht).toFixed(2).replace(".",",")+" €";
+      parseFloat(ht).toFixed(2).replace(".",",") + " €";
   });
 });
 
@@ -299,24 +299,20 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     });
     const data = await res.json();
 
-    // Nouveau : on ne teste plus data.status, mais on confirme directement
     if (!data.clientSecret) {
       throw new Error(data.error || "Pas de clientSecret renvoyé");
     }
 
-    // Gestion du 3D Secure
     const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
     if (confirmError) {
       throw new Error("Erreur 3D Secure : " + confirmError.message);
     }
 
-    // Tout est validé, on affiche la confirmation
     goToPage(6);
     document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
-    // Si ton back te renvoie la date next billing, utilise-la ici
     document.getElementById("conf-next-bill").innerText =
       new Date(Date.now() + 30*24*3600*1000).toLocaleDateString();
   } catch (err) {
-    alert(Erreur paiement : ${err.message});
+    alert(`Erreur paiement : ${err.message}`);
   }
 });
