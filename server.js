@@ -64,28 +64,28 @@ app.get('/api/health', (req, res) => {
 
 // création d’abonnement avec SCA
 app.post('/api/create-subscription', async (req, res) => {
-  const { stripeToken, plan, email } = req.body;
-  if (!stripeToken || !plan || !email) {
+  const { stripeToken, priceId, email } = req.body;
+  if (!stripeToken || !priceId || !email) {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
 
-  // mappe plan → priceId depuis tes ENV
-  const priceId = plan === 'mensuel'
-    ? process.env.PRICE_ID_MENSUEL
-    : process.env.PRICE_ID_ANNUEL;
-
-  if (!priceId) {
-    return res.status(400).json({ error: 'Plan invalide ou non configuré.' });
+  // Vérifie que le priceId fourni est bien l’un de ceux configurés
+  const allowed = [
+    process.env.PRICE_ID_MENSUEL,
+    process.env.PRICE_ID_ANNUEL
+  ];
+  if (!allowed.includes(priceId)) {
+    return res.status(400).json({ error: 'priceId invalide ou non configuré.' });
   }
 
   try {
-    // 1) création customer et attache la carte
+    // 1) création du customer et attache la carte
     const customer = await stripeLib.customers.create({
       email,
       source: stripeToken
     });
 
-    // 2) création de la subscription en mode incomplete pour 3D Secure
+    // 2) création de la subscription en mode incomplete (pour SCA)
     const subscription = await stripeLib.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
