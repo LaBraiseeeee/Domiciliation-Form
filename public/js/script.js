@@ -46,20 +46,19 @@ function showPage(pageNumber) {
   });
 
   let progressStep = 1;
-  if      (pageNumber === 1)                    progressStep = 1;
+  if (pageNumber === 1) progressStep = 1;
   else if (pageNumber === 2 || pageNumber === 3) progressStep = 2;
-  else if (pageNumber === 4)                    progressStep = 3;
-  else if (pageNumber === 5)                    progressStep = 4;
-  else if (pageNumber === 6)                    progressStep = 5;
+  else if (pageNumber === 4) progressStep = 3;
+  else if (pageNumber === 5) progressStep = 4;
+  else if (pageNumber === 6) progressStep = 5;
 
   stepsBar.querySelectorAll(".step-item").forEach(item => {
     const itemStep = parseInt(item.dataset.step, 10);
     item.classList.remove("active","completed");
-    if      (itemStep < progressStep)   item.classList.add("completed");
+    if (itemStep < progressStep) item.classList.add("completed");
     else if (itemStep === progressStep) item.classList.add("active");
   });
 
-  // Ajuste la largeur du conteneur selon l'étape
   if (progressStep < 3) {
     stepsBar.classList.replace("step-wide","step-narrow");
     formContainer.style.maxWidth = "500px";
@@ -71,18 +70,15 @@ function showPage(pageNumber) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Passe à la page indiquée
 function goToPage(pageNumber) {
   currentPage = pageNumber;
   showPage(pageNumber);
 }
 
-// Initialisation au chargement du DOM
 document.addEventListener("DOMContentLoaded", () => {
   showPage(currentPage);
   preloadImage();
   if (isImageCached(addressImage.src)) {
-    imageLoaded = true;
     addressImage.classList.add("loaded");
     imagePlaceholder.style.display = "none";
   }
@@ -134,27 +130,26 @@ btnStep1.addEventListener("click", () => {
   }
 
   if (valid) {
-    userEmail = eVal;      // on stocke l'email pour l'étape 5
+    userEmail = eVal;
     goToPage(2);
   }
 });
 
-// Étape 2 : passage direct à 3
-const btnStep2 = document.getElementById("btn-step2-part1");
-btnStep2.addEventListener("click", () => goToPage(3));
+// Étape 2 → 3
+document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
-const btnStep3        = document.getElementById("btn-step3");
-const formeJuridique  = document.getElementById("forme-juridique");
-const nomSociete      = document.getElementById("nom-societe");
-const radiosSocCree   = document.getElementsByName("societe-cree");
-const sirenField      = document.getElementById("siren-field");
-const numSiren        = document.getElementById("num-siren");
-const microMsg        = document.getElementById("micro-entreprise-message");
-const errForme        = document.getElementById("error-forme");
-const errNomSoc       = document.getElementById("error-nomsociete");
-const errSocCree      = document.getElementById("error-soccree");
-const errSiren        = document.getElementById("error-siren");
+const btnStep3       = document.getElementById("btn-step3");
+const formeJuridique = document.getElementById("forme-juridique");
+const nomSociete     = document.getElementById("nom-societe");
+const radiosSocCree  = document.getElementsByName("societe-cree");
+const sirenField     = document.getElementById("siren-field");
+const numSiren       = document.getElementById("num-siren");
+const microMsg       = document.getElementById("micro-entreprise-message");
+const errForme       = document.getElementById("error-forme");
+const errNomSoc      = document.getElementById("error-nomsociete");
+const errSocCree     = document.getElementById("error-soccree");
+const errSiren       = document.getElementById("error-siren");
 
 formeJuridique.addEventListener("change", () => {
   microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
@@ -168,97 +163,67 @@ btnStep3.addEventListener("click", () => {
   let valid = true;
 
   if (!formeJuridique.value) {
-    errForme.textContent = "Ce champ est requis";
-    errForme.classList.add("visible");
-    formeJuridique.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    formeJuridique.style.borderColor = "#ccc";
-  }
+    errForme.textContent = "Ce champ est requis"; errForme.classList.add("visible"); valid = false;
+  } else formeJuridique.style.borderColor = "#ccc";
 
   if (!nomSociete.value.trim()) {
-    errNomSoc.textContent = "Ce champ est requis";
-    errNomSoc.classList.add("visible");
-    nomSociete.style.borderColor = "#e74c3c";
-    valid = false;
-  } else {
-    nomSociete.style.borderColor = "#ccc";
-  }
+    errNomSoc.textContent = "Ce champ est requis"; errNomSoc.classList.add("visible"); valid = false;
+  } else nomSociete.style.borderColor = "#ccc";
 
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
-    errSocCree.textContent = "Ce champ est requis";
-    errSocCree.classList.add("visible");
-    valid = false;
+    errSocCree.textContent = "Ce champ est requis"; errSocCree.classList.add("visible"); valid = false;
   }
 
   if (chosen === "oui" && !numSiren.value.trim()) {
-    errSiren.textContent = "Ce champ est requis";
-    errSiren.classList.add("visible");
-    numSiren.style.borderColor = "#e74c3c";
-    valid = false;
-  } else if (chosen === "oui") {
-    numSiren.style.borderColor = "#ccc";
-  }
+    errSiren.textContent = "Ce champ est requis"; errSiren.classList.add("visible"); valid = false;
+  } else if (chosen === "oui") numSiren.style.borderColor = "#ccc";
 
   if (valid) goToPage(4);
 });
 
-radiosSocCree.forEach(radio => {
+radiosSocCree.forEach(radio =>
   radio.addEventListener("change", () => {
     sirenField.style.display = (radio.value === "oui" && radio.checked) ? "block" : "none";
-  });
-});
+  })
+);
 
 // Étape 4 : adresse de réexpédition
-const btnStep4          = document.getElementById("btn-step4");
-const adressePrincipale = document.getElementById("adresse-principale");
-const errAdresse        = document.getElementById("error-message-adresse");
-
-btnStep4.addEventListener("click", () => {
-  let valid = true;
-  if (!adressePrincipale.value.trim()) {
-    errAdresse.textContent = "Ce champ est requis";
-    errAdresse.classList.add("visible");
-    adressePrincipale.style.borderColor = "#e74c3c";
-    valid = false;
+document.getElementById("btn-step4").addEventListener("click", () => {
+  const addr = document.getElementById("adresse-principale");
+  const errAddr = document.getElementById("error-message-adresse");
+  if (!addr.value.trim()) {
+    errAddr.textContent = "Ce champ est requis"; errAddr.classList.add("visible"); addr.style.borderColor = "#e74c3c";
   } else {
-    errAdresse.classList.remove("visible");
-    adressePrincipale.style.borderColor = "#ddd";
+    errAddr.classList.remove("visible"); addr.style.borderColor = "#ddd"; goToPage(5);
   }
-  if (valid) goToPage(5);
 });
 
-// Sélection de la fréquence (page 5)
-const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
-paymentOptions.forEach(opt => {
+// Sélection fréquence (page 5)
+document.querySelectorAll("#payment-options-container .frequency-option").forEach(opt =>
   opt.addEventListener("click", function() {
-    paymentOptions.forEach(o => o.classList.remove("selected"));
+    document.querySelectorAll(".frequency-option").forEach(o => o.classList.remove("selected"));
     this.classList.add("selected");
-
-    const ht  = this.dataset.paymentPriceHt;
+    const ht = this.dataset.paymentPriceHt;
     const ttc = this.dataset.paymentPriceTtc;
-    const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
-    const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
-
+    const lbl = this.querySelector(".frequency-title").innerText.toLowerCase().includes("annuel") ? "ANNUEL" : "MENSUEL";
     document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
     document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
     document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".", ",") + " €";
     document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
       parseFloat(ht).toFixed(2).replace(".", ",") + " €";
-  });
-});
+  })
+);
 
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE (mode TEST)
+// 3) INTÉGRATION STRIPE & WEBHOOK n8n
 // --------------------------------------
 
-// Initialise Stripe en test pour tes essais
+// Initialise Stripe (test)
 const stripe = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
 const elements = stripe.elements();
-
 const style = {
   base: {
     color: "#32325d",
@@ -268,15 +233,12 @@ const style = {
   },
   invalid: { color: "#e74c3c" }
 };
-
 const cardNumber = elements.create("cardNumber", { style });
 const cardExpiry = elements.create("cardExpiry", { style });
 const cardCvc    = elements.create("cardCvc",    { style });
-
 cardNumber.mount("#card-number-element");
 cardExpiry.mount("#card-expiry-element");
 cardCvc.mount("#card-cvc-element");
-
 function handleCardError(event) {
   document.getElementById("card-errors").textContent = event.error ? event.error.message : "";
 }
@@ -284,70 +246,64 @@ cardNumber.on("change", handleCardError);
 cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
-// Nouvelle logique pour btn-step5 : paiement → n8n → preview + signature
+// Handler btn-step5 : paiement → Webhook n8n → preview contrat
 document.getElementById("btn-step5").addEventListener("click", async () => {
-  const country = document.getElementById("card-country").value || "FR";
-  const { token, error } = await stripe.createToken(cardNumber, {
-    name: "Nom Sur La Carte",
-    address_country: country
-  });
-  if (error) {
-    document.getElementById("card-errors").textContent = error.message;
-    return;
-  }
-
-  // Récupère l’ID du tarif sélectionné
-  const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
-  const priceId      = selectedElem.dataset.priceId;
-  const clientEmail  = userEmail; // depuis l'étape 1
-
-  console.log("Envoi create-subscription avec :", {
-    stripeToken: token.id,
-    priceId,
-    email: clientEmail
-  });
-
   try {
-    // 1) Crée la souscription Stripe
-    const res   = await fetch("/api/create-subscription", {
+    // 1) Token Stripe
+    const country = document.getElementById("card-country").value || "FR";
+    const { token, error } = await stripe.createToken(cardNumber, {
+      name: "Nom Sur La Carte",
+      address_country: country
+    });
+    if (error) {
+      document.getElementById("card-errors").textContent = error.message;
+      return;
+    }
+
+    // 2) Create Subscription
+    const sel = document.querySelector("#payment-options-container .frequency-option.selected");
+    const priceId     = sel.dataset.priceId;
+    const clientEmail = userEmail;
+    const resp = await fetch("/api/create-subscription", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type":"application/json" },
       body: JSON.stringify({ stripeToken: token.id, priceId, email: clientEmail })
     });
-    const data  = await res.json();
-    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
-
-    // 2) Confirme le paiement (3D Secure)
+    const data = await resp.json();
     const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
     if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
 
-    // 3) Passe à l’étape 6 (preview contrat)
-    goToPage(6);
+    // 3) Déclenche Webhook n8n local
+    const webhookUrl = "http://localhost:5678/webhook-test/contract-create";
+    const payload = {
+      subscriptionId: data.subscriptionId,
+      customerEmail:  clientEmail,
+      priceId,
+      email:          document.getElementById("email").value.trim(),
+      telephone:      document.getElementById("telephone").value.trim(),
+      formeJuridique: document.getElementById("forme-juridique").value,
+      nomSociete:     document.getElementById("nom-societe").value.trim(),
+      societeCree:    document.querySelector("input[name='societe-cree']:checked")?.value || "",
+      numSiren:       document.getElementById("num-siren").value.trim(),
+      adresseReexp:   document.getElementById("adresse-principale").value.trim()
+    };
+    const hookRes = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!hookRes.ok) throw new Error("Webhook n8n Error " + hookRes.status);
 
-    // 4) Affiche le loader et cache la preview
+    // 4) Preview & signature (page 6)
+    goToPage(6);
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
-    // 5) Appelle ton Webhook n8n pour générer le PDF + SignRequest
-    const webhookUrl = "https://TON_N8N_HOST/webhook/contract-create"; 
-    const payload    = {
-      subscriptionId: data.subscriptionId,
-      customerEmail:  clientEmail,
-      priceId
-      // + autres champs du formulaire si besoin
-    };
-    const res2  = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const json2 = await res2.json(); // { pdf_url, sign_url }
-
-    // 6) Masque loader, injecte PDF et configure le bouton signer
+    const hookJson = await hookRes.json(); // { pdf_url, sign_url }
     document.getElementById("contract-loader").style.display   = "none";
-    document.getElementById("contract-iframe").src             = json2.pdf_url;
+    document.getElementById("contract-iframe").src             = hookJson.pdf_url;
     const btnSign = document.getElementById("btn-sign");
-    btnSign.onclick = () => window.location.href = json2.sign_url;
+    btnSign.onclick = () => window.location.href = hookJson.sign_url;
     document.getElementById("contract-preview").style.display = "block";
 
   } catch (err) {
