@@ -88,11 +88,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
 // --------------------------------------
 // 2) VALIDATION & NAVIGATION ENTRE ÉTAPES
 // --------------------------------------
 
-// Étape 1 : email + téléphone
+// Étape 1 : email + téléphone
 const btnStep1 = document.getElementById("btn-step1");
 const email    = document.getElementById("email");
 const phone    = document.getElementById("telephone");
@@ -138,11 +139,11 @@ btnStep1.addEventListener("click", () => {
   }
 });
 
-// Étape 2 : passage direct à 3
+// Étape 2 : passage direct à 3
 const btnStep2 = document.getElementById("btn-step2-part1");
 btnStep2.addEventListener("click", () => goToPage(3));
 
-// Étape 3 : infos société
+// Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
 const formeJuridique  = document.getElementById("forme-juridique");
 const nomSociete      = document.getElementById("nom-societe");
@@ -209,7 +210,7 @@ radiosSocCree.forEach(radio => {
   });
 });
 
-// Étape 4 : adresse de réexpédition
+// Étape 4 : adresse de réexpédition
 const btnStep4          = document.getElementById("btn-step4");
 const adressePrincipale = document.getElementById("adresse-principale");
 const errAdresse        = document.getElementById("error-message-adresse");
@@ -228,7 +229,7 @@ btnStep4.addEventListener("click", () => {
   if (valid) goToPage(5);
 });
 
-// Sélection de la fréquence (page 5)
+// Sélection de la fréquence (page 5)
 const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
 paymentOptions.forEach(opt => {
   opt.addEventListener("click", function() {
@@ -242,12 +243,13 @@ paymentOptions.forEach(opt => {
 
     document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
     document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".",",") + " €";
-    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",") + " €";
+    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".", ",") + " €";
+    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
-      parseFloat(ht).toFixed(2).replace(".",",") + " €";
+      parseFloat(ht).toFixed(2).replace(".", ",") + " €";
   });
 });
+
 
 // --------------------------------------
 // 3) INTÉGRATION STRIPE (mode TEST)
@@ -282,6 +284,7 @@ cardNumber.on("change", handleCardError);
 cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
+// Nouvelle logique pour btn-step5 : paiement → n8n → preview + signature
 document.getElementById("btn-step5").addEventListener("click", async () => {
   const country = document.getElementById("card-country").value || "FR";
   const { token, error } = await stripe.createToken(cardNumber, {
@@ -293,12 +296,11 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // Récupère l’ID du tarif sélectionné **uniquement** dans le conteneur de paiement
+  // Récupère l’ID du tarif sélectionné
   const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
-  const priceId = selectedElem.dataset.priceId;
-  const clientEmail = userEmail; // on utilise l'email stocké à l'étape 1
+  const priceId      = selectedElem.dataset.priceId;
+  const clientEmail  = userEmail; // depuis l'étape 1
 
-  // **LOG pour debug** : on affiche ce qu'on envoie au serveur
   console.log("Envoi create-subscription avec :", {
     stripeToken: token.id,
     priceId,
@@ -306,27 +308,48 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
   });
 
   try {
-    const res = await fetch("/api/create-subscription", {
+    // 1) Crée la souscription Stripe
+    const res   = await fetch("/api/create-subscription", {
       method: "POST",
-      headers: { "Content-Type":"application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stripeToken: token.id, priceId, email: clientEmail })
     });
-    const data = await res.json();
+    const data  = await res.json();
+    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
 
-    if (!data.clientSecret) {
-      throw new Error(data.error || "Pas de clientSecret renvoyé");
-    }
-
+    // 2) Confirme le paiement (3D Secure)
     const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
-    if (confirmError) {
-      throw new Error("Erreur 3D Secure : " + confirmError.message);
-    }
+    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
 
-    // Passe à la page de confirmation
+    // 3) Passe à l’étape 6 (preview contrat)
     goToPage(6);
-    document.getElementById("conf-sub-id").innerText   = data.subscriptionId;
-    document.getElementById("conf-next-bill").innerText =
-      new Date(Date.now() + 30*24*3600*1000).toLocaleDateString();
+
+    // 4) Affiche le loader et cache la preview
+    document.getElementById("contract-loader").style.display   = "block";
+    document.getElementById("contract-preview").style.display = "none";
+
+    // 5) Appelle ton Webhook n8n pour générer le PDF + SignRequest
+    const webhookUrl = "https://TON_N8N_HOST/webhook/contract-create"; 
+    const payload    = {
+      subscriptionId: data.subscriptionId,
+      customerEmail:  clientEmail,
+      priceId
+      // + autres champs du formulaire si besoin
+    };
+    const res2  = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const json2 = await res2.json(); // { pdf_url, sign_url }
+
+    // 6) Masque loader, injecte PDF et configure le bouton signer
+    document.getElementById("contract-loader").style.display   = "none";
+    document.getElementById("contract-iframe").src             = json2.pdf_url;
+    const btnSign = document.getElementById("btn-sign");
+    btnSign.onclick = () => window.location.href = json2.sign_url;
+    document.getElementById("contract-preview").style.display = "block";
+
   } catch (err) {
     alert(`Erreur paiement : ${err.message}`);
   }
