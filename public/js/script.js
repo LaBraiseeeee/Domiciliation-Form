@@ -241,8 +241,8 @@ paymentOptions.forEach(opt => {
     const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
     const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
 
-    document.getElementById("total-label-ht-final").innerText  = TOTAL ${lbl} HT;
-    document.getElementById("total-label-ttc-final").innerText = TOTAL ${lbl} TTC;
+    document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
+    document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
     document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".", ",") + " €";
     document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
@@ -328,19 +328,26 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
-    // 5) Appelle ton Webhook n8n pour générer le PDF + SignRequest
-    const webhookUrl = "https://TON_N8N_HOST/webhook/contract-create"; 
+    // 5) Appelle ton Webhook n8n local
+    const webhookUrl = "http://localhost:5678/webhook-test/contract-create";
     const payload    = {
       subscriptionId: data.subscriptionId,
       customerEmail:  clientEmail,
-      priceId
-      // + autres champs du formulaire si besoin
+      priceId,
+      email:          document.getElementById("email").value.trim(),
+      telephone:      document.getElementById("telephone").value.trim(),
+      formeJuridique: document.getElementById("forme-juridique").value,
+      nomSociete:     document.getElementById("nom-societe").value.trim(),
+      societeCree:    document.querySelector("input[name='societe-cree']:checked")?.value || "",
+      numSiren:       document.getElementById("num-siren").value.trim(),
+      adresseReexp:   document.getElementById("adresse-principale").value.trim()
     };
-    const res2  = await fetch(webhookUrl, {
+    const res2 = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
+    if (!res2.ok) throw new Error("Webhook n8n Error " + res2.status);
     const json2 = await res2.json(); // { pdf_url, sign_url }
 
     // 6) Masque loader, injecte PDF et configure le bouton signer
@@ -351,6 +358,6 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     document.getElementById("contract-preview").style.display = "block";
 
   } catch (err) {
-    alert(Erreur paiement : ${err.message});
+    alert(`Erreur paiement : ${err.message}`);
   }
 });
