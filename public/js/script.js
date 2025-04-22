@@ -9,8 +9,21 @@ async function triggerMakeWebhook(payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error(`Erreur Make (${res.status})`);
-  return await res.json(); // si ton scénario Make renvoie du JSON { pdf_url, sign_url }
+  if (!res.ok) {
+    throw new Error(`Erreur Make (${res.status})`);
+  }
+
+  // Lire la réponse en plain-text
+  const text = await res.text();
+  console.log('Make webhook response raw:', text);
+
+  // Essayer de parser en JSON si c'est du JSON, sinon retourner {}
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn('Make response is not JSON:', err);
+    return {};
+  }
 }
 
 // --------------------------------------
