@@ -1,20 +1,16 @@
 // --------------------------------------
-// 0) FONCTION D’ENVOI VERS AIRTABLE / N8N
+// 0) FONCTION D’ENVOI VERS MAKE
 // --------------------------------------
-async function sendToAirtable(payload) {
-  try {
-    const res = await fetch("/webhook-test/contract-create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error(`Webhook Error ${res.status}`);
-    return await res.json();  // on récupère { pdf_url, sign_url } ou confirmation
-  } catch (err) {
-    console.error("❌ sendToAirtable failed:", err);
-    alert("Impossible d’enregistrer tes infos : " + err.message);
-    throw err;  // on relance l'erreur pour ne pas renvoyer undefined
-  }
+async function triggerMakeWebhook(payload) {
+  const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/vhj6k18f27c9hz5c6s9uny4fiodppuxv';
+
+  const res = await fetch(MAKE_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`Erreur Make (${res.status})`);
+  return await res.json(); // si ton scénario Make renvoie du JSON { pdf_url, sign_url }
 }
 
 // --------------------------------------
@@ -333,16 +329,15 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
       priceId
     };
 
-    // 7) Envoie vers Airtable / n8n et récupère pdf_url & sign_url
-    const { pdf_url, sign_url } = await sendToAirtable(payload);
+    // 7) Envoie vers Make et récupère pdf_url & sign_url
+    const { pdf_url, sign_url } = await triggerMakeWebhook(payload);
 
     // 8) Masque loader, injecte PDF et configure le bouton signer
     document.getElementById("contract-loader").style.display   = "none";
-    document.getElementById("contract-iframe").src             = pdf_url;
-    document.getElementById("btn-sign").onclick               = () => window.location.href = sign_url;
-    document.getElementById("contract-preview").style.display = "block";
-
+    if (pdf_url)  document.getElementById("contract-iframe").src = pdf_url;
+    if (sign_url) document.getElementById("btn-sign").onclick     = () => window.location.href = sign_url;
+    document.getElementById("contract-preview").style.display     = "block";
   } catch (err) {
-    alert(`Erreur paiement : ${err.message}`);
+    alert(`Erreur Make : ${err.message}`);
   }
 });
