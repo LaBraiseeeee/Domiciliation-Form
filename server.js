@@ -1,10 +1,11 @@
 // server.js
 require('dotenv').config(); // charge .env
 
-const express    = require('express');
-const path       = require('path');
+const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
-const stripeLib  = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
@@ -52,6 +53,17 @@ app.post(
 // 2) JSON parser pour le reste
 app.use(express.json());
 
+// 2b) PROXY n8n local → toutes les requêtes /webhook-test passent vers localhost:5678
+app.use(
+  '/webhook-test',
+  createProxyMiddleware({
+    target: 'http://localhost:5678',
+    changeOrigin: true,
+    secure: false,
+    pathRewrite: { '^/webhook-test': '/webhook-test' }
+  })
+);
+
 // 3) Sert tes fichiers statiques (public/index.html, css/, js/)
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -64,17 +76,14 @@ app.get('/api/health', (req, res) => {
 
 // création d’abonnement avec SCA
 app.post('/api/create-subscription', async (req, res) => {
-  // Ajout d'un log pour voir le contenu du body reçu
   console.log('📥 Payload /create-subscription:', req.body);
 
   const { stripeToken, priceId, email } = req.body;
 
-  // Vérification des paramètres
   if (!stripeToken || !priceId || !email) {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
 
-  // Vérifie que le priceId fourni est l’un de ceux configurés
   const allowed = [
     process.env.PRICE_ID_MENSUEL,
     process.env.PRICE_ID_ANNUEL
@@ -84,13 +93,11 @@ app.post('/api/create-subscription', async (req, res) => {
   }
 
   try {
-    // 1) création du customer et attache la carte
     const customer = await stripeLib.customers.create({
       email,
       source: stripeToken
     });
 
-    // 2) création de la subscription en mode incomplete (pour SCA)
     const subscription = await stripeLib.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
@@ -100,7 +107,6 @@ app.post('/api/create-subscription', async (req, res) => {
 
     const pi = subscription.latest_invoice.payment_intent;
 
-    // 3) renvoie clientSecret + subscriptionId
     res.json({
       subscriptionId: subscription.id,
       clientSecret: pi.client_secret,
