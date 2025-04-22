@@ -3,7 +3,7 @@
 // --------------------------------------
 async function sendToAirtable(payload) {
   try {
-    const res = await fetch("http://localhost:5678/webhook-test/contract-create", {
+    const res = await fetch("/webhook-test/contract-create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -13,6 +13,7 @@ async function sendToAirtable(payload) {
   } catch (err) {
     console.error("❌ sendToAirtable failed:", err);
     alert("Impossible d’enregistrer tes infos : " + err.message);
+    throw err;  // on relance l'erreur pour ne pas renvoyer undefined
   }
 }
 
@@ -24,12 +25,12 @@ async function sendToAirtable(payload) {
 let currentPage = 1;
 let userEmail   = "";  // on stocke l'email saisi à l'étape 1
 
-const formSteps       = document.querySelectorAll(".form-step");
-const stepsBar        = document.getElementById("steps-bar");
-const formContainer   = document.getElementById("form-container");
-const addressImage    = document.getElementById("address-image");
-const imagePlaceholder= document.getElementById("image-placeholder");
-let imageLoaded       = false;
+const formSteps        = document.querySelectorAll(".form-step");
+const stepsBar         = document.getElementById("steps-bar");
+const formContainer    = document.getElementById("form-container");
+const addressImage     = document.getElementById("address-image");
+const imagePlaceholder = document.getElementById("image-placeholder");
+let imageLoaded        = false;
 
 // Shimmer + preload
 imagePlaceholder.classList.add("loading-shimmer");
@@ -59,11 +60,11 @@ function showPage(pageNumber) {
   });
 
   let progressStep = 1;
-  if      (pageNumber === 1)                    progressStep = 1;
+  if      (pageNumber === 1)                     progressStep = 1;
   else if (pageNumber === 2 || pageNumber === 3) progressStep = 2;
-  else if (pageNumber === 4)                    progressStep = 3;
-  else if (pageNumber === 5)                    progressStep = 4;
-  else if (pageNumber === 6)                    progressStep = 5;
+  else if (pageNumber === 4)                     progressStep = 3;
+  else if (pageNumber === 5)                     progressStep = 4;
+  else if (pageNumber === 6)                     progressStep = 5;
 
   stepsBar.querySelectorAll(".step-item").forEach(item => {
     const itemStep = parseInt(item.dataset.step, 10);
@@ -187,7 +188,6 @@ btnStep3.addEventListener("click", () => {
     nomSociete.style.borderColor = "#ccc";
   }
 
-  // → CORRECTION ICI : guillemets équilibrés
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
     errSocCree.textContent = "Ce champ est requis";
