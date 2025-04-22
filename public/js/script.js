@@ -1,12 +1,12 @@
 // --------------------------------------
-// 0) FONCTION D’ENVOI VERS AIRTABLE (WEBHOOK N8N)
+// 0) FONCTION D’ENVOI VERS AIRTABLE
 // --------------------------------------
 async function sendToAirtable(payload) {
   try {
     const res = await fetch("http://localhost:5678/webhook-test/contract-create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`Webhook Error ${res.status}`);
     const data = await res.json();
@@ -24,14 +24,15 @@ async function sendToAirtable(payload) {
 
 // Variables globales
 let currentPage = 1;
-let userEmail   = ""; // on stocke l'email saisi à l'étape 1
+let userEmail = ""; // on stocke l'email saisi à l'étape 1
 
-const formSteps       = document.querySelectorAll(".form-step");
-const stepsBar        = document.getElementById("steps-bar");
-const formContainer   = document.getElementById("form-container");
-const addressImage    = document.getElementById("address-image");
-const imagePlaceholder= document.getElementById("image-placeholder");
-let imageLoaded       = false;
+const formSteps     = document.querySelectorAll(".form-step");
+const stepsBar      = document.getElementById("steps-bar");
+const formContainer = document.getElementById("form-container");
+let imageLoaded     = false;
+
+const addressImage     = document.getElementById("address-image");
+const imagePlaceholder = document.getElementById("image-placeholder");
 
 // Ajout de l’effet “shimmer” lors du chargement
 imagePlaceholder.classList.add("loading-shimmer");
@@ -107,16 +108,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
 // --------------------------------------
 // 2) VALIDATION & NAVIGATION ENTRE ÉTAPES
 // --------------------------------------
 
 // Étape 1 : email + téléphone
-const btnStep1   = document.getElementById("btn-step1");
-const emailField = document.getElementById("email");
-const phoneField = document.getElementById("telephone");
-const errEmail   = document.getElementById("error-email");
-const errPhone   = document.getElementById("error-telephone");
+const btnStep1 = document.getElementById("btn-step1");
+const email    = document.getElementById("email");
+const phone    = document.getElementById("telephone");
+const errEmail = document.getElementById("error-email");
+const errPhone = document.getElementById("error-telephone");
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 btnStep1.addEventListener("click", () => {
@@ -126,40 +128,40 @@ btnStep1.addEventListener("click", () => {
   });
   let valid = true;
 
-  const eVal = emailField.value.trim();
+  const eVal = email.value.trim();
   if (!eVal) {
     errEmail.textContent = "Ce champ est requis";
     errEmail.classList.add("visible");
-    emailField.style.borderColor = "#e74c3c";
+    email.style.borderColor = "#e74c3c";
     valid = false;
   } else if (!emailRegex.test(eVal)) {
     errEmail.textContent = "Adresse e-mail invalide";
     errEmail.classList.add("visible");
-    emailField.style.borderColor = "#e74c3c";
+    email.style.borderColor = "#e74c3c";
     valid = false;
   } else {
-    emailField.style.borderColor = "#ccc";
+    email.style.borderColor = "#ccc";
   }
 
-  const pVal = phoneField.value.trim();
+  const pVal = phone.value.trim();
   if (!pVal) {
     errPhone.textContent = "Ce champ est requis";
     errPhone.classList.add("visible");
-    phoneField.style.borderColor = "#e74c3c";
+    phone.style.borderColor = "#e74c3c";
     valid = false;
   } else {
-    phoneField.style.borderColor = "#ccc";
+    phone.style.borderColor = "#ccc";
   }
 
   if (valid) {
-    userEmail = eVal;
+    userEmail = eVal;      // on stocke l'email pour l'étape 1
     goToPage(2);
   }
 });
 
-// Étape 2 → 3
-document.getElementById("btn-step2-part1")
-  .addEventListener("click", () => goToPage(3));
+// Étape 2 : passage direct à 3
+const btnStep2 = document.getElementById("btn-step2-part1");
+btnStep2.addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
@@ -269,11 +271,12 @@ paymentOptions.forEach(opt => {
 });
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE & ENVOI WEBHOOK
+// 3) INTÉGRATION STRIPE (mode TEST) + WEBHOOKS
 // --------------------------------------
-const stripe   = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
+const stripe = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
 const elements = stripe.elements();
-const style    = {
+
+const style = {
   base: {
     color: "#32325d",
     fontFamily: "Nunito, sans-serif",
@@ -298,8 +301,8 @@ cardNumber.on("change", handleCardError);
 cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
+// Nouvelle logique pour btn-step5 : paiement → webhook Airtable → preview + signature
 document.getElementById("btn-step5").addEventListener("click", async () => {
-  // 1) Création du token Stripe
   const country = document.getElementById("card-country").value || "FR";
   const { token, error } = await stripe.createToken(cardNumber, {
     name: "Nom Sur La Carte",
@@ -310,61 +313,69 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // 2) Récupère l’ID du tarif sélectionné
+  // Récupère l’ID du tarif sélectionné
   const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
   const priceId      = selectedElem.dataset.priceId;
-  const clientEmail  = userEmail;
+  const clientEmail  = userEmail; // depuis l'étape 1
 
-  // 3) Envoie les données du formulaire à Airtable via ton webhook n8n
-  const formPayload = {
-    stripeToken:       token.id,
-    priceId:           priceId,
-    email:             document.getElementById("email").value.trim(),
-    telephone:         document.getElementById("telephone").value.trim(),
-    formeJuridique:    document.getElementById("forme-juridique").value,
-    nomSociete:        document.getElementById("nom-societe").value.trim(),
-    societeCree:       document.querySelector("input[name='societe-cree']:checked')?.value || "",
-    numSiren:          document.getElementById("num-siren").value.trim(),
-    adresseReexp:      document.getElementById("adresse-principale").value.trim(),
-    complementAdresse: document.getElementById("complement-adresse").value.trim(),
-    subscriptionId:    null,   // sera mis à jour après création
-  };
-  await sendToAirtable(formPayload);
+  console.log("Envoi create-subscription avec :", {
+    stripeToken: token.id,
+    priceId,
+    email: clientEmail
+  });
 
-  // 4) Crée la souscription Stripe
   try {
-    const res  = await fetch("/api/create-subscription", {
+    // 1) Crée la souscription Stripe
+    const res   = await fetch("/api/create-subscription", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stripeToken: token.id, priceId, email: clientEmail })
     });
-    const data = await res.json();
-    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret");
+    const data  = await res.json();
+    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
 
-    // 5) Confirme le paiement (3D Secure)
+    // 2) Confirme le paiement (3D Secure)
     const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
-    if (confirmError) throw new Error("3D Secure : " + confirmError.message);
+    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
 
-    // 6) Mets à jour ton payload avec l’ID de souscription
-    formPayload.subscriptionId = data.subscriptionId;
-    await sendToAirtable(formPayload);
-
-    // 7) Passe à l’étape 6 et affiche la preview du contrat
+    // 3) Passe à l’étape 6 (preview contrat)
     goToPage(6);
+
+    // 4) Affiche le loader et cache la preview
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
-    const res2 = await fetch("http://localhost:5678/webhook-test/contract-create", {
+    // 5) Envoi des données vers Airtable
+    const payload = {
+      subscriptionId: data.subscriptionId,
+      customerEmail:  clientEmail,
+      priceId,
+      email:          document.getElementById("email").value.trim(),
+      telephone:      document.getElementById("telephone").value.trim(),
+      formeJuridique: document.getElementById("forme-juridique").value,
+      nomSociete:     document.getElementById("nom-societe").value.trim(),
+      societeCree:    document.querySelector("input[name='societe-cree']:checked")?.value || "",
+      numSiren:       document.getElementById("num-siren").value.trim(),
+      adresseReexp:   document.getElementById("adresse-principale").value.trim(),
+      complementAdresse: document.getElementById("complement-adresse").value.trim()
+    };
+    await sendToAirtable(payload);
+
+    // 6) Appelle ton Webhook n8n local pour générer la preview PDF & sign
+    const webhookUrl = "http://localhost:5678/webhook-test/contract-create";
+    const res2 = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formPayload)
+      body: JSON.stringify(payload)
     });
     if (!res2.ok) throw new Error("Webhook n8n Error " + res2.status);
-    const json2 = await res2.json();
+    const json2 = await res2.json(); // { pdf_url, sign_url }
 
+    // 7) Masque loader, injecte PDF et configure le bouton signer
     document.getElementById("contract-loader").style.display   = "none";
     document.getElementById("contract-iframe").src             = json2.pdf_url;
-    document.getElementById("btn-sign").onclick = () => window.location.href = json2.sign_url;
+    const btnSign = document.getElementById("btn-sign");
+    btnSign.onclick = () => window.location.href = json2.sign_url;
     document.getElementById("contract-preview").style.display = "block";
 
   } catch (err) {
