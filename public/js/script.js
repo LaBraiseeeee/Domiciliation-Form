@@ -155,8 +155,7 @@ btnStep1.addEventListener("click", () => {
 });
 
 // Étape 2 → 3
-document.getElementById("btn-step2-part1")
-  .addEventListener("click", () => goToPage(3));
+document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
@@ -304,10 +303,12 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // 2) Récupère l’ID du tarif sélectionné
+  // 2) Récupère l’ID du tarif sélectionné + type d'abonnement
   const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
   const priceId      = selectedElem.dataset.priceId;
   const clientEmail  = userEmail;
+  const freqText     = selectedElem.querySelector('.frequency-title').innerText.toLowerCase();
+  const abonnement   = freqText.includes('annuel') ? 'Annuelle' : 'Mensuelle';
 
   try {
     // 3) Crée la souscription Stripe
@@ -339,7 +340,8 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
       numSiren:       document.getElementById("num-siren").value.trim(),
       adresseReexp:   document.getElementById("adresse-principale").value.trim(),
       complementAdresse: document.getElementById("complement-adresse").value.trim(),
-      priceId
+      priceId,
+      abonnement
     };
 
     // 7) Envoie vers Make et récupère pdf_url & sign_url
