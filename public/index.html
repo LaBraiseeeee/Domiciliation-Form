@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Formulaire - Étapes 1 à 5</title>
+  <title>Formulaire - Étapes 1 à 6</title>
 
   <!-- Préchargement de l'image -->
   <link
@@ -397,7 +397,25 @@
             <p>ID de souscription : <strong id="conf-sub-id"></strong></p>
             <p>Prochaine facturation : <strong id="conf-next-bill"></strong></p>
           </div>
+
+          <!-- Loader pendant la génération du contrat -->
+          <div id="contract-loader" style="display:none; text-align:center; padding:20px;">
+            Chargement du contrat…
+          </div>
+
+          <!-- Preview du contrat + bouton signer -->
+          <div id="contract-preview" style="display:none; text-align:center; margin-top:20px;">
+            <iframe
+              id="contract-iframe"
+              style="width:100%; height:500px; border:none;"
+              title="Aperçu du contrat">
+            </iframe>
+            <button id="btn-sign" class="btn" style="margin-top:15px;">
+              Signer le contrat
+            </button>
+          </div>
         </div>
+
       </form>
     </div>
   </div>
