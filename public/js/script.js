@@ -32,7 +32,7 @@ async function triggerMakeWebhook(payload) {
 
 // Variables globales
 let currentPage = 1;
-let userEmail   = "";  // on stocke l'email saisi à l'étape 1
+let userEmail   = "";  // on stocke l'email saisi à l'étape 1
 
 const formSteps        = document.querySelectorAll(".form-step");
 const stepsBar         = document.getElementById("steps-bar");
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 2) VALIDATION & NAVIGATION ENTRE ÉTAPES
 // --------------------------------------
 
-// Étape 1 : email + téléphone
+// Étape 1 : email + téléphone
 const btnStep1   = document.getElementById("btn-step1");
 const emailField = document.getElementById("email");
 const phoneField = document.getElementById("telephone");
@@ -154,10 +154,10 @@ btnStep1.addEventListener("click", () => {
   }
 });
 
-// Étape 2 → 3
+// Étape 2 → 3
 document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
 
-// Étape 3 : infos société
+// Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
 const formeJuridique  = document.getElementById("forme-juridique");
 const nomSociete      = document.getElementById("nom-societe");
@@ -171,7 +171,7 @@ const errSocCree      = document.getElementById("error-soccree");
 const errSiren        = document.getElementById("error-siren");
 
 formeJuridique.addEventListener("change", () => {
-  microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
+  microMsg.style.display = (formeJuridique.value === "Micro‑entreprise") ? "block" : "none";
 });
 
 btnStep3.addEventListener("click", () => {
@@ -221,7 +221,7 @@ radiosSocCree.forEach(radio => {
   });
 });
 
-// Étape 4 : adresse de réexpédition
+// Étape 4 : adresse de réexpédition
 const btnStep4          = document.getElementById("btn-step4");
 const adressePrincipale = document.getElementById("adresse-principale");
 const errAdresse        = document.getElementById("error-message-adresse");
@@ -240,7 +240,7 @@ btnStep4.addEventListener("click", () => {
   if (valid) goToPage(5);
 });
 
-// Sélection fréquence page 5
+// Sélection fréquence page 5
 const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
 paymentOptions.forEach(opt => {
   opt.addEventListener("click", function() {
@@ -324,24 +324,24 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
     if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
 
-    // 5) Passe à l’étape 6 + affiche loader
+    // 5) Passe à l’étape 6 + affiche loader
     goToPage(6);
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
     // 6) Prépare le payload complet
     const payload = {
-      subscriptionId: data.subscriptionId,
-      email:          document.getElementById("email").value.trim(),
-      telephone:      document.getElementById("telephone").value.trim(),
-      formeJuridique: document.getElementById("forme-juridique").value,
-      nomSociete:     document.getElementById("nom-societe").value.trim(),
-      societeCree:    document.querySelector("input[name='societe-cree']:checked")?.value || "",
-      numSiren:       document.getElementById("num-siren").value.trim(),
-      adresseReexp:   document.getElementById("adresse-principale").value.trim(),
+      subscriptionId:    data.subscriptionId,
+      email:             document.getElementById("email").value.trim(),
+      telephone:         document.getElementById("telephone").value.trim(),
+      formeJuridique:    document.getElementById("forme-juridique").value,
+      nomSociete:        document.getElementById("nom-societe").value.trim(),
+      societeCree:       document.querySelector("input[name='societe-cree']:checked")?.value || "",
+      numSiren:          document.getElementById("num-siren").value.trim(),
+      adresseReexp:      document.getElementById("adresse-principale").value.trim(),
       complementAdresse: document.getElementById("complement-adresse").value.trim(),
       priceId,
-      abonnement
+      abonnement         // ← ajouté ici
     };
 
     // 7) Envoie vers Make et récupère pdf_url & sign_url
