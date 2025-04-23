@@ -286,7 +286,8 @@ cardNumber.on("change", handleCardError);
 cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
-document.getElementById("btn-step5").addEventListener(" click", async () => {
+// Correction de l'espace en trop avant "click"
+document.getElementById("btn-step5").addEventListener("click", async () => {
   // 1) Création du token Stripe
   const country = document.getElementById("card-country").value || "FR";
   const { token, error } = await stripe.createToken(cardNumber, {
