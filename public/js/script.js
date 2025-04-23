@@ -14,23 +14,23 @@ async function createContract(payload) {
 }
 
 // --------------------------------------
-// 1) NAVIGATION & PRÉCHARGEMENT IMAGE & PREVIEW
+// 1) NAVIGATION, PRÉCHARGEMENT IMAGE & PREVIEW
 // --------------------------------------
 let currentPage = 1;
 let userEmail   = "";
 
-const formSteps        = document.querySelectorAll(".form-step");
-const stepsBar         = document.getElementById("steps-bar");
-const formContainer    = document.getElementById("form-container");
-const addressImage     = document.getElementById("address-image");
-const imagePlaceholder = document.getElementById("image-placeholder");
+const formSteps        = document.querySelectorAll('.form-step');
+const stepsBar         = document.getElementById('steps-bar');
+const formContainer    = document.getElementById('form-container');
+const addressImage     = document.getElementById('address-image');
+const imagePlaceholder = document.getElementById('image-placeholder');
 
 function preloadImage() {
-  imagePlaceholder.classList.add("loading-shimmer");
+  imagePlaceholder.classList.add('loading-shimmer');
   const img = new Image();
   img.onload = () => {
-    addressImage.classList.add("loaded");
-    imagePlaceholder.style.display = "none";
+    addressImage.classList.add('loaded');
+    imagePlaceholder.style.display = 'none';
   };
   img.onerror = () => {
     imagePlaceholder.innerHTML = "Impossible de charger l'image";
@@ -47,21 +47,21 @@ function isImageCached(src) {
 function adjustFormWidth() {
   const w = window.innerWidth;
   if (w <= 600) {
-    formContainer.style.maxWidth = "95%";
+    formContainer.style.maxWidth = '95%';
   } else {
     const step = currentPage === 1 ? 1
                : currentPage <= 3 ? 2
                : currentPage === 4 ? 3
                : currentPage === 5 ? 4
                                     : 5;
-    formContainer.style.maxWidth = step < 3 ? "500px" : (w < 950 ? "95%" : "900px");
+    formContainer.style.maxWidth = step < 3 ? '500px' : (w < 950 ? '95%' : '900px');
   }
 }
 
 function showPage(pageNumber) {
   currentPage = pageNumber;
   formSteps.forEach(page => {
-    page.classList.toggle("active", parseInt(page.dataset.page, 10) === pageNumber);
+    page.classList.toggle('active', parseInt(page.dataset.page, 10) === pageNumber);
   });
 
   const progressStep = currentPage === 1 ? 1
@@ -70,18 +70,18 @@ function showPage(pageNumber) {
                       : currentPage === 5 ? 4
                                             : 5;
 
-  stepsBar.querySelectorAll(".step-item").forEach(item => {
+  stepsBar.querySelectorAll('.step-item').forEach(item => {
     const s = parseInt(item.dataset.step, 10);
-    item.classList.remove("active","completed");
-    if (s < progressStep)   item.classList.add("completed");
-    else if (s === progressStep) item.classList.add("active");
+    item.classList.remove('active','completed');
+    if (s < progressStep)       item.classList.add('completed');
+    else if (s === progressStep) item.classList.add('active');
   });
 
-  stepsBar.classList.toggle("step-narrow", progressStep < 3);
-  stepsBar.classList.toggle("step-wide",  progressStep >= 3);
+  stepsBar.classList.toggle('step-narrow', progressStep < 3);
+  stepsBar.classList.toggle('step-wide',  progressStep >= 3);
 
   adjustFormWidth();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function goToPage(pageNumber) {
@@ -89,25 +89,24 @@ function goToPage(pageNumber) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Bloc PREVIEW si URL contient ?preview
   const params = new URLSearchParams(window.location.search);
   if (params.has('preview')) {
-    // Mode preview : on skip tout le reste et on affiche l'étape 6
     goToPage(6);
     document.getElementById('contract-loader').style.display   = 'block';
     document.getElementById('contract-preview').style.display = 'none';
 
     const previewPayload = {
-      subscriptionId:    'sub_test_123',
-      email:             document.getElementById('email').value.trim(),
-      nomSociete:        "Bastien",
-      test:              "yes",
+      subscriptionId:     'sub_test_123',
+      email:              document.getElementById('email').value.trim(),
+      nomSociete:         'Bastien',
+      test:               'yes',
       placeholder_fields: [],
       signer_fields:      []
     };
 
     try {
       const { pdf_url, sign_url } = await createContract(previewPayload);
-
       document.getElementById('contract-loader').style.display   = 'none';
       document.getElementById('contract-iframe').src            = pdf_url;
       document.getElementById('btn-sign').onclick               = () => window.location.href = sign_url;
@@ -120,19 +119,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error('Preview eSign error:', e);
       document.getElementById('contract-loader').textContent = 'Erreur de prévisualisation';
     }
-
-    // On stoppe l'init normale
-    return;
+    return; // stoppe l'init normale
   }
 
-  // Sinon, init normale
+  // Init normale
   preloadImage();
   if (isImageCached(addressImage.src)) {
-    addressImage.classList.add("loaded");
-    imagePlaceholder.style.display = "none";
+    addressImage.classList.add('loaded');
+    imagePlaceholder.style.display = 'none';
   }
   showPage(currentPage);
-  window.addEventListener("resize", adjustFormWidth);
+  window.addEventListener('resize', adjustFormWidth);
 });
 
 // --------------------------------------
@@ -140,41 +137,41 @@ document.addEventListener('DOMContentLoaded', async () => {
 // --------------------------------------
 
 // Étape 1 : Email + Téléphone
-const btnStep1   = document.getElementById("btn-step1");
-const emailField = document.getElementById("email");
-const phoneField = document.getElementById("telephone");
-const errEmail   = document.getElementById("error-email");
-const errPhone   = document.getElementById("error-telephone");
+const btnStep1   = document.getElementById('btn-step1');
+const emailField = document.getElementById('email');
+const phoneField = document.getElementById('telephone');
+const errEmail   = document.getElementById('error-email');
+const errPhone   = document.getElementById('error-telephone');
 const emailRe    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-btnStep1.addEventListener("click", () => {
-  errEmail.classList.remove("visible"); errEmail.textContent = "";
-  errPhone.classList.remove("visible"); errPhone.textContent = "";
+btnStep1.addEventListener('click', () => {
+  errEmail.classList.remove('visible'); errEmail.textContent = '';
+  errPhone.classList.remove('visible'); errPhone.textContent = '';
   let valid = true;
 
   const eVal = emailField.value.trim();
   if (!eVal) {
-    errEmail.textContent = "Ce champ est requis";
-    errEmail.classList.add("visible");
-    emailField.style.borderColor = "#e74c3c";
+    errEmail.textContent = 'Ce champ est requis';
+    errEmail.classList.add('visible');
+    emailField.style.borderColor = '#e74c3c';
     valid = false;
   } else if (!emailRe.test(eVal)) {
-    errEmail.textContent = "Adresse e-mail invalide";
-    errEmail.classList.add("visible");
-    emailField.style.borderColor = "#e74c3c";
+    errEmail.textContent = 'Adresse e-mail invalide';
+    errEmail.classList.add('visible');
+    emailField.style.borderColor = '#e74c3c';
     valid = false;
   } else {
-    emailField.style.borderColor = "#ccc";
+    emailField.style.borderColor = '#ccc';
   }
 
   const pVal = phoneField.value.trim();
   if (!pVal) {
-    errPhone.textContent = "Ce champ est requis";
-    errPhone.classList.add("visible");
-    phoneField.style.borderColor = "#e74c3c";
+    errPhone.textContent = 'Ce champ est requis';
+    errPhone.classList.add('visible');
+    phoneField.style.borderColor = '#e74c3c';
     valid = false;
   } else {
-    phoneField.style.borderColor = "#ccc";
+    phoneField.style.borderColor = '#ccc';
   }
 
   if (valid) {
@@ -184,193 +181,171 @@ btnStep1.addEventListener("click", () => {
 });
 
 // Étape 2 → 3
-document.getElementById("btn-step2-part1")
-  .addEventListener("click", () => goToPage(3));
+document.getElementById('btn-step2-part1')
+  .addEventListener('click', () => goToPage(3));
 
-// Étape 3 : Infos société
-const btnStep3        = document.getElementById("btn-step3");
-const formeSelect     = document.getElementById("forme-juridique");
-const nomSocieteField = document.getElementById("nom-societe");
-const radiosSocCree   = document.getElementsByName("societe-cree");
-const sirenField      = document.getElementById("siren-field");
-const numSirenField   = document.getElementById("num-siren");
-const microMsg        = document.getElementById("micro-entreprise-message");
-const errForme        = document.getElementById("error-forme");
-const errNomSoc       = document.getElementById("error-nomsociete");
-const errSociCree     = document.getElementById("error-soccree");
-const errSiren        = document.getElementById("error-siren");
+// Étape 3
+const btnStep3        = document.getElementById('btn-step3');
+const formeSelect     = document.getElementById('forme-juridique');
+const nomSocieteField = document.getElementById('nom-societe');
+const radiosSocCree   = document.getElementsByName('societe-cree');
+const sirenField      = document.getElementById('siren-field');
+const numSirenField   = document.getElementById('num-siren');
+const microMsg        = document.getElementById('micro-entreprise-message');
+const errForme        = document.getElementById('error-forme');
+const errNomSoc       = document.getElementById('error-nomsociete');
+const errSociCree     = document.getElementById('error-soccree');
+const errSiren        = document.getElementById('error-siren');
 
-formeSelect.addEventListener("change", () => {
-  microMsg.style.display = formeSelect.value === "Micro-entreprise" ? "block" : "none";
+formeSelect.addEventListener('change', () => {
+  microMsg.style.display = formeSelect.value === 'Micro-entreprise' ? 'block' : 'none';
 });
 
-btnStep3.addEventListener("click", () => {
+btnStep3.addEventListener('click', () => {
   [errForme, errNomSoc, errSociCree, errSiren].forEach(e => {
-    e.classList.remove("visible"); e.textContent = "";
+    e.classList.remove('visible'); e.textContent = '';
   });
   let valid = true;
 
   if (!formeSelect.value) {
-    errForme.textContent = "Ce champ est requis";
-    errForme.classList.add("visible");
-    formeSelect.style.borderColor = "#e74c3c";
-    valid = false;
-  } else formeSelect.style.borderColor = "#ccc";
-
-  if (!nomSocieteField.value.trim()) {
-    errNomSoc.textContent = "Ce champ est requis";
-    errNomSoc.classList.add("visible");
-    nomSocieteField.style.borderColor = "#e74c3c";
-    valid = false;
-  } else nomSocieteField.style.borderColor = "#ccc";
-
-  const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
-  if (!chosen) {
-    errSociCree.textContent = "Ce champ est requis";
-    errSociCree.classList.add("visible");
+    errForme.textContent = 'Ce champ est requis';
+    errForme.classList.add('visible');
     valid = false;
   }
-  if (chosen === "oui" && !numSirenField.value.trim()) {
-    errSiren.textContent = "Ce champ est requis";
-    errSiren.classList.add("visible");
-    numSirenField.style.borderColor = "#e74c3c";
+  if (!nomSocieteField.value.trim()) {
+    errNomSoc.textContent = 'Ce champ est requis';
+    errNomSoc.classList.add('visible');
     valid = false;
-  } else if (chosen === "oui") {
-    numSirenField.style.borderColor = "#ccc";
+  }
+  const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || '';
+  if (!chosen) {
+    errSociCree.textContent = 'Ce champ est requis';
+    errSociCree.classList.add('visible');
+    valid = false;
+  }
+  if (chosen === 'oui' && !numSirenField.value.trim()) {
+    errSiren.textContent = 'Ce champ est requis';
+    errSiren.classList.add('visible');
+    valid = false;
   }
 
   if (valid) goToPage(4);
 });
 
 radiosSocCree.forEach(r => {
-  r.addEventListener("change", () => {
-    sirenField.style.display = r.checked && r.value === "oui" ? "block" : "none";
+  r.addEventListener('change', () => {
+    sirenField.style.display = r.checked && r.value === 'oui' ? 'block' : 'none';
   });
 });
 
-// Étape 4 : Adresse de réexpédition
-const btnStep4  = document.getElementById("btn-step4");
-const addrInput = document.getElementById("adresse-principale");
-const errAddr   = document.getElementById("error-message-adresse");
+// Étape 4
+const btnStep4  = document.getElementById('btn-step4');
+const addrInput = document.getElementById('adresse-principale');
+const errAddr   = document.getElementById('error-message-adresse');
 
-btnStep4.addEventListener("click", () => {
-  errAddr.classList.remove("visible"); errAddr.textContent = "";
+btnStep4.addEventListener('click', () => {
+  errAddr.classList.remove('visible'); errAddr.textContent = '';
   if (!addrInput.value.trim()) {
-    errAddr.textContent = "Ce champ est requis";
-    errAddr.classList.add("visible");
-    addrInput.style.borderColor = "#e74c3c";
+    errAddr.textContent = 'Ce champ est requis';
+    errAddr.classList.add('visible');
   } else {
-    addrInput.style.borderColor = "#ddd";
     goToPage(5);
   }
 });
 
 // Sélection fréquence page 5
-const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
+const paymentOptions = document.querySelectorAll('#payment-options-container .frequency-option');
 paymentOptions.forEach(opt => {
-  opt.addEventListener("click", function() {
-    paymentOptions.forEach(o => o.classList.remove("selected"));
-    this.classList.add("selected");
+  opt.addEventListener('click', function() {
+    paymentOptions.forEach(o => o.classList.remove('selected'));
+    this.classList.add('selected');
     const ht  = this.dataset.paymentPriceHt;
     const ttc = this.dataset.paymentPriceTtc;
-    const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
-    const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
+    const txt = this.querySelector('.frequency-title').innerText.toLowerCase();
+    const lbl = txt.includes('annuel') ? 'ANNUEL' : 'MENSUEL';
 
-    document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
-    document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText =
-      parseFloat(ht).toFixed(2).replace(".", ",") + " €";
-    document.getElementById("total-ttc-final").innerText =
-      parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
-    document.getElementById("recap-domiciliation-final").innerText =
-      parseFloat(ht).toFixed(2).replace(".", ",") + " €";
+    document.getElementById('total-label-ht-final').innerText  = `TOTAL ${lbl} HT`;
+    document.getElementById('total-label-ttc-final').innerText = `TOTAL ${lbl} TTC`;
+    document.getElementById('total-ht-final').innerText =
+      parseFloat(ht).toFixed(2).replace('.', ',') + ' €';
+    document.getElementById('total-ttc-final').innerText =
+      parseFloat(ttc).toFixed(2).replace('.', ',') + ' €';
   });
 });
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE (mode TEST) + eSignatures
+// 3) INTÉGRATION STRIPE + eSignatures
 // --------------------------------------
-const stripe   = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
+const stripe   = Stripe('pk_test_51QfLJWPs1z3k...'); // ton clé publique
 const elements = stripe.elements();
 const style    = {
-  base: {
-    color: "#32325d",
-    fontFamily: "Nunito, sans-serif",
-    fontSize: "16px",
-    "::placeholder": { color: "#ccc" }
-  },
-  invalid: { color: "#e74c3c" }
+  base: { color: '#32325d', fontFamily: 'Nunito, sans-serif', fontSize: '16px', '::placeholder': { color: '#ccc' } },
+  invalid: { color: '#e74c3c' }
 };
-
-const cardNumber = elements.create("cardNumber", { style });
-const cardExpiry = elements.create("cardExpiry", { style });
-const cardCvc    = elements.create("cardCvc",    { style });
-
-cardNumber.mount("#card-number-element");
-cardExpiry.mount("#card-expiry-element");
-cardCvc.mount("#card-cvc-element");
-
-function handleCardError(event) {
-  document.getElementById("card-errors").textContent = event.error ? event.error.message : "";
+const cardNumber = elements.create('cardNumber', { style });
+const cardExpiry = elements.create('cardExpiry', { style });
+const cardCvc    = elements.create('cardCvc',    { style });
+cardNumber.mount('#card-number-element');
+cardExpiry.mount('#card-expiry-element');
+cardCvc.mount('#card-cvc-element');
+cardNumber.on('change', handleCardError);
+cardExpiry.on('change', handleCardError);
+cardCvc.on('change',    handleCardError);
+function handleCardError(e) {
+  document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
 }
-cardNumber.on("change", handleCardError);
-cardExpiry.on("change", handleCardError);
-cardCvc.on("change", handleCardError);
 
 // --------------------------------------
-// 4) BOUTON PAIEMENT (étape 5 → 6)
+// 4) BOUTON PAIEMENT (Étape 5 → 6)
 // --------------------------------------
-document.getElementById("btn-step5").addEventListener("click", async () => {
-  const country = document.getElementById("card-country").value || "FR";
-  const { token, error } = await stripe.createToken(cardNumber, {
-    name: "Nom Sur La Carte",
-    address_country: country
-  });
+document.getElementById('btn-step5').addEventListener('click', async () => {
+  const country = document.getElementById('card-country').value || 'FR';
+  const { token, error } = await stripe.createToken(cardNumber, { name: 'Nom Sur La Carte', address_country: country });
   if (error) {
-    document.getElementById("card-errors").textContent = error.message;
+    document.getElementById('card-errors').textContent = error.message;
     return;
   }
 
-  const selElem    = document.querySelector("#payment-options-container .frequency-option.selected");
-  const priceId    = selElem.dataset.priceId;
-  const freqText   = selElem.querySelector('.frequency-title').innerText.toLowerCase();
-  const abonnement = freqText.includes('annuel') ? 'Annuelle' : 'Mensuelle';
+  const sel    = document.querySelector('#payment-options-container .frequency-option.selected');
+  const priceId = sel.dataset.priceId;
+  const freq   = sel.querySelector('.frequency-title').innerText.toLowerCase();
+  const abo    = freq.includes('annuel') ? 'Annuelle' : 'Mensuelle';
 
   try {
-    const res  = await fetch("/api/create-subscription", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res  = await fetch('/api/create-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stripeToken: token.id, priceId, email: userEmail })
     });
     const data = await res.json();
-    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
+    if (!data.clientSecret) throw new Error(data.error || 'Pas de clientSecret renvoyé');
 
-    const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
-    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
+    const { error: confirmErr } = await stripe.confirmCardPayment(data.clientSecret);
+    if (confirmErr) throw new Error('Erreur 3D Secure : ' + confirmErr.message);
 
     goToPage(6);
-    document.getElementById("contract-loader").style.display   = "block";
-    document.getElementById("contract-preview").style.display = "none";
+    document.getElementById('contract-loader').style.display   = 'block';
+    document.getElementById('contract-preview').style.display = 'none';
 
     const { pdf_url, sign_url } = await createContract({
       subscriptionId:     data.subscriptionId,
       email:              userEmail,
-      nomSociete:         "Bastien",
-      abonnement,
+      nomSociete:         'Bastien',
+      abonnement:         abo,
       placeholder_fields: [],
       signer_fields:      [],
-      test:               "yes"
+      test:               'yes'
     });
 
-    document.getElementById("contract-loader").style.display   = "none";
-    document.getElementById("contract-iframe").src            = pdf_url;
-    document.getElementById("btn-sign").onclick               = () => window.location.href = sign_url;
-    document.getElementById("contract-preview").style.display = "block";
+    document.getElementById('contract-loader').style.display   = 'none';
+    document.getElementById('contract-iframe').src            = pdf_url;
+    document.getElementById('btn-sign').onclick               = () => window.location.href = sign_url;
+    document.getElementById('contract-preview').style.display = 'block';
 
     document.getElementById('conf-sub-id').textContent    = data.subscriptionId;
-    document.getElementById('conf-next-bill').textContent = abonnement === 'Mensuelle'
-      ? new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString('fr-FR')
-      : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('fr-FR');
+    document.getElementById('conf-next-bill').textContent = abo === 'Mensuelle'
+      ? new Date(new Date().setMonth(new Date().getMonth()+1)).toLocaleDateString('fr-FR')
+      : new Date(new Date().setFullYear(new Date().getFullYear()+1)).toLocaleDateString('fr-FR');
 
   } catch (err) {
     alert(`Erreur : ${err.message}`);
