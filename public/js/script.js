@@ -1,38 +1,57 @@
 // --------------------------------------
-// 0) FONCTION DE CRÉATION DU CONTRAT eSignatures
+// 0) FONCTION D’ENVOI VERS MAKE
 // --------------------------------------
-async function createContract(payload) {
-  const res = await fetch('/api/create-contract', {
+async function triggerMakeWebhook(payload) {
+  const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/vhj6k18f27c9hz5c6s9uny4fiodppuxv';
+
+  const res = await fetch(MAKE_WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    throw new Error(`eSignatures (${res.status})`);
+    throw new Error(Erreur Make (${res.status}));
   }
-  return res.json(); // { pdf_url, sign_url }
+
+  // Lire la réponse en plain-text
+  const text = await res.text();
+  console.log('Make webhook response raw:', text);
+
+  // Essayer de parser en JSON si c'est du JSON, sinon retourner {}
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn('Make response is not JSON:', err);
+    return {};
+  }
 }
 
 // --------------------------------------
 // 1) NAVIGATION & PRÉCHARGEMENT IMAGE
 // --------------------------------------
+
+// Variables globales
 let currentPage = 1;
-let userEmail   = "";
+let userEmail   = "";  // on stocke l'email saisi à l'étape 1
 
 const formSteps        = document.querySelectorAll(".form-step");
 const stepsBar         = document.getElementById("steps-bar");
 const formContainer    = document.getElementById("form-container");
 const addressImage     = document.getElementById("address-image");
 const imagePlaceholder = document.getElementById("image-placeholder");
+let imageLoaded        = false;
 
+// Shimmer + preload
 imagePlaceholder.classList.add("loading-shimmer");
 function preloadImage() {
   const img = new Image();
   img.onload = () => {
+    imageLoaded = true;
     addressImage.classList.add("loaded");
     imagePlaceholder.style.display = "none";
   };
   img.onerror = () => {
+    console.error("Erreur lors du chargement de l'image");
     imagePlaceholder.innerHTML = "Impossible de charger l'image";
   };
   img.src = addressImage.src;
@@ -43,22 +62,24 @@ function isImageCached(src) {
   return img.complete;
 }
 
+// Affichage de la page
 function showPage(pageNumber) {
   formSteps.forEach(page => {
     page.classList.toggle("active", parseInt(page.dataset.page, 10) === pageNumber);
   });
 
-  let progressStep = pageNumber === 1 ? 1
-                    : pageNumber <= 3 ? 2
-                    : pageNumber === 4 ? 3
-                    : pageNumber === 5 ? 4
-                    : 5;
+  let progressStep = 1;
+  if      (pageNumber === 1)                     progressStep = 1;
+  else if (pageNumber === 2 || pageNumber === 3) progressStep = 2;
+  else if (pageNumber === 4)                     progressStep = 3;
+  else if (pageNumber === 5)                     progressStep = 4;
+  else if (pageNumber === 6)                     progressStep = 5;
 
   stepsBar.querySelectorAll(".step-item").forEach(item => {
-    const step = parseInt(item.dataset.step, 10);
+    const itemStep = parseInt(item.dataset.step, 10);
     item.classList.remove("active","completed");
-    if (step < progressStep)   item.classList.add("completed");
-    else if (step === progressStep) item.classList.add("active");
+    if      (itemStep < progressStep)   item.classList.add("completed");
+    else if (itemStep === progressStep) item.classList.add("active");
   });
 
   if (progressStep < 3) {
@@ -80,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
   showPage(currentPage);
   preloadImage();
   if (isImageCached(addressImage.src)) {
+    imageLoaded = true;
     addressImage.classList.add("loaded");
     imagePlaceholder.style.display = "none";
   }
@@ -149,7 +171,7 @@ const errSocCree      = document.getElementById("error-soccree");
 const errSiren        = document.getElementById("error-siren");
 
 formeJuridique.addEventListener("change", () => {
-  microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
+  microMsg.style.display = (formeJuridique.value === "Micro‑entreprise") ? "block" : "none";
 });
 
 btnStep3.addEventListener("click", () => {
@@ -205,16 +227,17 @@ const adressePrincipale = document.getElementById("adresse-principale");
 const errAdresse        = document.getElementById("error-message-adresse");
 
 btnStep4.addEventListener("click", () => {
-  errAdresse.classList.remove("visible");
-  errAdresse.textContent = "";
+  let valid = true;
   if (!adressePrincipale.value.trim()) {
     errAdresse.textContent = "Ce champ est requis";
     errAdresse.classList.add("visible");
     adressePrincipale.style.borderColor = "#e74c3c";
+    valid = false;
   } else {
+    errAdresse.classList.remove("visible");
     adressePrincipale.style.borderColor = "#ddd";
-    goToPage(5);
   }
+  if (valid) goToPage(5);
 });
 
 // Sélection fréquence page 5
@@ -229,8 +252,8 @@ paymentOptions.forEach(opt => {
     const txt = this.querySelector(".frequency-title").innerText.toLowerCase();
     const lbl = txt.includes("annuel") ? "ANNUEL" : "MENSUEL";
 
-    document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
-    document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
+    document.getElementById("total-label-ht-final").innerText  = TOTAL ${lbl} HT;
+    document.getElementById("total-label-ttc-final").innerText = TOTAL ${lbl} TTC;
     document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".", ",") + " €";
     document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
@@ -239,7 +262,7 @@ paymentOptions.forEach(opt => {
 });
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE (mode TEST) + eSignatures
+// 3) INTÉGRATION STRIPE (mode TEST) + WEBHOOKS
 // --------------------------------------
 const stripe   = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
 const elements = stripe.elements();
@@ -280,9 +303,10 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  // 2) Récupère l’ID du tarif + type d'abonnement
+  // 2) Récupère l’ID du tarif sélectionné + type d'abonnement
   const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
   const priceId      = selectedElem.dataset.priceId;
+  const clientEmail  = userEmail;
   const freqText     = selectedElem.querySelector('.frequency-title').innerText.toLowerCase();
   const abonnement   = freqText.includes('annuel') ? 'Annuelle' : 'Mensuelle';
 
@@ -291,35 +315,44 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     const res  = await fetch("/api/create-subscription", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stripeToken: token.id, priceId, email: userEmail })
+      body: JSON.stringify({ stripeToken: token.id, priceId, email: clientEmail })
     });
     const data = await res.json();
     if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
 
     // 4) Confirme le paiement (3D Secure)
     const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
-    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
+    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
 
     // 5) Passe à l’étape 6 + affiche loader
     goToPage(6);
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
-    // 6) Création du contrat eSignatures
-    const { pdf_url, sign_url } = await createContract({
-      nomSociete:     document.getElementById("nom-societe").value.trim(),
-      email:          userEmail,
-      subscriptionId: data.subscriptionId,
-      abonnement
-    });
+    // 6) Prépare le payload complet
+    const payload = {
+      subscriptionId:    data.subscriptionId,
+      email:             document.getElementById("email").value.trim(),
+      telephone:         document.getElementById("telephone").value.trim(),
+      formeJuridique:    document.getElementById("forme-juridique").value,
+      nomSociete:        document.getElementById("nom-societe").value.trim(),
+      societeCree:       document.querySelector("input[name='societe-cree']:checked")?.value || "",
+      numSiren:          document.getElementById("num-siren").value.trim(),
+      adresseReexp:      document.getElementById("adresse-principale").value.trim(),
+      complementAdresse: document.getElementById("complement-adresse").value.trim(),
+      priceId,
+      abonnement         // ← ajouté ici
+    };
 
-    // 7) Affiche le PDF + configure le bouton signer
+    // 7) Envoie vers Make et récupère pdf_url & sign_url
+    const { pdf_url, sign_url } = await triggerMakeWebhook(payload);
+
+    // 8) Masque loader, injecte PDF et configure le bouton signer
     document.getElementById("contract-loader").style.display   = "none";
-    document.getElementById("contract-iframe").src            = pdf_url;
-    document.getElementById("btn-sign").onclick               = () => window.location.href = sign_url;
-    document.getElementById("contract-preview").style.display = "block";
-
+    if (pdf_url)  document.getElementById("contract-iframe").src = pdf_url;
+    if (sign_url) document.getElementById("btn-sign").onclick     = () => window.location.href = sign_url;
+    document.getElementById("contract-preview").style.display     = "block";
   } catch (err) {
-    alert(`Erreur : ${err.message}`);
+    alert(Erreur Make : ${err.message});
   }
 });
