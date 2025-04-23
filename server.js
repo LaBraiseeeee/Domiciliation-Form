@@ -4,7 +4,7 @@ require('dotenv').config(); // charge .env
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch');                       // ← on utilise node-fetch, plus besoin d'axios
+const fetch = require('node-fetch');                       // on utilise node-fetch
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -103,7 +103,16 @@ app.post('/api/create-subscription', async (req, res) => {
 
 // ─── ROUTE POUR eSignature via node-fetch ───
 app.post('/api/create-contract', async (req, res) => {
-  const { nomSociete, email, subscriptionId, abonnement } = req.body;
+  // On récupère désormais tous les champs dynamiques du front
+  const {
+    nomSociete,
+    email,
+    subscriptionId,
+    abonnement,
+    placeholder_fields = [],
+    signer_fields = []
+  } = req.body;
+
   const token      = process.env.ESIG_TOKEN;
   const templateId = process.env.ESIG_TEMPLATE_ID;
 
@@ -112,25 +121,29 @@ app.post('/api/create-contract', async (req, res) => {
   }
 
   try {
-    // appelle l'API eSignatures.com en sandbox (test mode)
+    // Construction du payload complet pour l'API eSignatures
     const apiRes = await fetch(`https://esignatures.com/api/contracts?token=${token}`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        template_id: templateId,
-        test:        'yes',
+        template_id:        templateId,
+        test:               'yes',
         signers: [{
-          name: nomSociete,
+          name:         nomSociete,
           email,
           redirect_url: 'https://ton-site.com/merci'
-        }]
+        }],
+        placeholder_fields,
+        signer_fields
       })
     });
     if (!apiRes.ok) throw new Error(`eSignatures API status ${apiRes.status}`);
     const json = await apiRes.json();
     const contract = json.data.contract;
+
+    // On renvoie les URLs pour le front
     res.json({
-      pdf_url:  contract.pdf_url,
+      pdf_url:  contract.contract_pdf_url,
       sign_url: contract.signers[0].sign_page_url
     });
   } catch (err) {
