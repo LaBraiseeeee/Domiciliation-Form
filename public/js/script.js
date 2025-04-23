@@ -146,8 +146,7 @@ btnStep1.addEventListener("click", () => {
 });
 
 // Étape 2 → 3
-document.getElementById("btn-step2-part1")
-  .addEventListener("click", () => goToPage(3));
+document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
@@ -286,7 +285,7 @@ cardNumber.on("change", handleCardError);
 cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
-// Correction de l'espace en trop avant "click"
+// Correction de l'espace en trop avant "click" et payload enrichi
 document.getElementById("btn-step5").addEventListener("click", async () => {
   // 1) Création du token Stripe
   const country = document.getElementById("card-country").value || "FR";
@@ -324,12 +323,15 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
-    // 6) Création du contrat eSignatures
+    // 6) Création du contrat eSignatures avec Bastien comme signataire
     const { pdf_url, sign_url } = await createContract({
       subscriptionId: data.subscriptionId,
       email:          userEmail,
-      nomSociete:     document.getElementById("nom-societe").value.trim(),
-      abonnement
+      nomSociete:     "Bastien",
+      abonnement,
+      placeholder_fields: [],
+      signer_fields:      [],
+      test: "yes"
     });
 
     // 7) Affiche PDF + configure bouton signer
@@ -337,6 +339,12 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     document.getElementById("contract-iframe").src            = pdf_url;
     document.getElementById("btn-sign").onclick               = () => window.location.href = sign_url;
     document.getElementById("contract-preview").style.display = "block";
+
+    // 8) Peuple les infos de récap
+    document.getElementById('conf-sub-id').textContent    = data.subscriptionId;
+    document.getElementById('conf-next-bill').textContent = abonnement === 'Mensuelle'
+      ? new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString('fr-FR')
+      : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('fr-FR');
 
   } catch (err) {
     alert(`Erreur : ${err.message}`);
@@ -355,19 +363,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('contract-loader').style.display   = 'block';
     document.getElementById('contract-preview').style.display = 'none';
 
-    // 3) Recrée le payload depuis le formulaire
+    // 3) Payload de preview pour Bastien
     const previewPayload = {
       subscriptionId:    'sub_test_123',
       email:             document.getElementById('email').value.trim(),
-      telephone:         document.getElementById('telephone').value.trim(),
-      formeJuridique:    document.getElementById('forme-juridique').value,
-      nomSociete:        document.getElementById('nom-societe').value.trim(),
-      societeCree:       document.querySelector("input[name='societe-cree']:checked")?.value || '',
-      numSiren:          document.getElementById('num-siren').value.trim(),
-      adresseReexp:      document.getElementById('adresse-principale').value.trim(),
-      complementAdresse: document.getElementById('complement-adresse').value.trim(),
-      priceId:           document.querySelector('.frequency-option.selected').dataset.priceId,
-      abonnement:        document.querySelector('.frequency-option.selected .frequency-title').innerText
+      nomSociete:        "Bastien",
+      test:              "yes",
+      placeholder_fields: [],
+      signer_fields:      []
     };
 
     try {
@@ -379,6 +382,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('contract-iframe').src            = pdf_url;
       document.getElementById('btn-sign').onclick               = () => window.location.href = sign_url;
       document.getElementById('contract-preview').style.display = 'block';
+
+      // 6) Peuple le récap
+      document.getElementById('conf-sub-id').textContent    = previewPayload.subscriptionId;
+      document.getElementById('conf-next-bill').textContent = new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString('fr-FR');
+
     } catch (e) {
       console.error('Preview eSign error:', e);
       document.getElementById('contract-loader').textContent = 'Erreur de prévisualisation';
