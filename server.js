@@ -4,7 +4,6 @@ require('dotenv').config(); // charge .env
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch');                      // ← ajouté pour eSignatures
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -15,10 +14,8 @@ console.log('▶️ STRIPE_SECRET_KEY     =', process.env.STRIPE_SECRET_KEY);
 console.log('▶️ STRIPE_WEBHOOK_SECRET =', process.env.STRIPE_WEBHOOK_SECRET);
 console.log('▶️ PRICE_ID_MENSUEL      =', process.env.PRICE_ID_MENSUEL);
 console.log('▶️ PRICE_ID_ANNUEL       =', process.env.PRICE_ID_ANNUEL);
-console.log('▶️ ESIG_TOKEN            =', process.env.ESIG_TOKEN);
-console.log('▶️ ESIG_TEMPLATE_ID      =', process.env.ESIG_TEMPLATE_ID);
 
-// 1) ROUTE WEBHOOK Stripe (body brut pour vérifier la signature)
+// 1) ROUTE WEBHOOK (body brut pour vérifier la signature)
 app.post(
   '/webhook',
   bodyParser.raw({ type: 'application/json' }),
@@ -34,9 +31,10 @@ app.post(
       );
     } catch (err) {
       console.error('⚠️ Webhook signature invalid:', err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      return res.status(400).send(Webhook Error: ${err.message});
     }
 
+    // Traite les events utiles
     switch (event.type) {
       case 'invoice.payment_succeeded':
         console.log('✅ Paiement OK pour subscription', event.data.object.subscription);
@@ -81,6 +79,7 @@ app.post('/api/create-subscription', async (req, res) => {
   console.log('📥 Payload /create-subscription:', req.body);
 
   const { stripeToken, priceId, email } = req.body;
+
   if (!stripeToken || !priceId || !email) {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
@@ -94,13 +93,18 @@ app.post('/api/create-subscription', async (req, res) => {
   }
 
   try {
-    const customer = await stripeLib.customers.create({ email, source: stripeToken });
+    const customer = await stripeLib.customers.create({
+      email,
+      source: stripeToken
+    });
+
     const subscription = await stripeLib.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent']
     });
+
     const pi = subscription.latest_invoice.payment_intent;
 
     res.json({
@@ -114,41 +118,6 @@ app.post('/api/create-subscription', async (req, res) => {
   }
 });
 
-// ——————————————————————————————
-// nouv. endpoint pour eSignatures
-// ——————————————————————————————
-app.post('/api/create-contract', async (req, res) => {
-  const { nomSociete, email, subscriptionId, abonnement } = req.body;
-  const payload = {
-    token:       process.env.ESIG_TOKEN,
-    template_id: process.env.ESIG_TEMPLATE_ID,
-    test:        'yes',
-    signers: [{
-      name:         nomSociete,
-      email,
-      redirect_url: 'https://ton-site.com/merci'
-    }]
-  };
-
-  try {
-    const apiRes = await fetch('https://esignatures.com/api/contracts', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload)
-    });
-    if (!apiRes.ok) throw new Error(`Status ${apiRes.status}`);
-    const json = await apiRes.json();
-    const contract = json.data.contract;
-    res.json({
-      pdf_url:  contract.pdf_url,
-      sign_url: contract.signers[0].sign_page_url
-    });
-  } catch (err) {
-    console.error('❌ Erreur eSignatures:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // 5) Fallback SPA : toutes les routes non-API redirigent vers index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -157,5 +126,5 @@ app.get('*', (req, res) => {
 // 6) Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Serveur lancé sur le port ${PORT}`);
+  console.log(🚀 Serveur lancé sur le port ${PORT});
 });
