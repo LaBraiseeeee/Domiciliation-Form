@@ -1,21 +1,48 @@
 // --------------------------------------
+// 0) FONCTION D'ENVOI VERS MAKE
+// --------------------------------------
+async function triggerMakeWebhook(payload) {
+  const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/vhj6k18f27c9hz5c6s9uny4fiodppuxv';
+
+  const res = await fetch(MAKE_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(`Erreur Make (${res.status})`);
+  }
+
+  // Lire la réponse en plain-text
+  const text = await res.text();
+  console.log('Make webhook response raw:', text);
+
+  // Essayer de parser en JSON si c'est du JSON, sinon retourner {}
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn('Make response is not JSON:', err);
+    return {};
+  }
+}
+
+// --------------------------------------
 // 1) NAVIGATION & PRÉCHARGEMENT IMAGE
 // --------------------------------------
 
 // Variables globales
 let currentPage = 1;
-const formSteps     = document.querySelectorAll(".form-step");
-const stepsBar      = document.getElementById("steps-bar");
-const formContainer = document.getElementById("form-container");
-let imageLoaded     = false;
+let userEmail   = "";  // on stocke l'email saisi à l'étape 1
 
+const formSteps        = document.querySelectorAll(".form-step");
+const stepsBar         = document.getElementById("steps-bar");
+const formContainer    = document.getElementById("form-container");
 const addressImage     = document.getElementById("address-image");
 const imagePlaceholder = document.getElementById("image-placeholder");
+let imageLoaded        = false;
 
-// Ajout de l’effet “shimmer” lors du chargement
+// Shimmer + preload
 imagePlaceholder.classList.add("loading-shimmer");
-
-// Précharge l’image et cache le placeholder
 function preloadImage() {
   const img = new Image();
   img.onload = () => {
@@ -29,26 +56,46 @@ function preloadImage() {
   };
   img.src = addressImage.src;
 }
-
-// Vérifie si l’image est déjà en cache
 function isImageCached(src) {
   const img = new Image();
   img.src = src;
   return img.complete;
 }
 
-// Affiche la page demandée et met à jour la barre d’étapes
+// Calcule la largeur appropriée pour le formulaire selon la taille d'écran et l'étape actuelle
+function adjustFormWidth() {
+  const screenWidth = window.innerWidth;
+  if (screenWidth <= 600) {
+    // Pour les mobiles
+    formContainer.style.maxWidth = "95%";
+  } else {
+    // Pour les tablettes et desktop, selon l'étape
+    const progressStep = getCurrentProgressStep();
+    if (progressStep < 3) {
+      formContainer.style.maxWidth = "500px";
+    } else {
+      formContainer.style.maxWidth = screenWidth < 950 ? "95%" : "900px";
+    }
+  }
+}
+
+// Obtient le niveau de progression actuel basé sur la page
+function getCurrentProgressStep() {
+  if (currentPage === 1) return 1;
+  if (currentPage === 2 || currentPage === 3) return 2;
+  if (currentPage === 4) return 3;
+  if (currentPage === 5) return 4;
+  if (currentPage === 6) return 5;
+  return 1;
+}
+
+// Affichage de la page
 function showPage(pageNumber) {
   formSteps.forEach(page => {
     page.classList.toggle("active", parseInt(page.dataset.page, 10) === pageNumber);
   });
 
-  let progressStep = 1;
-  if      (pageNumber === 1)                    progressStep = 1;
-  else if (pageNumber === 2 || pageNumber === 3) progressStep = 2;
-  else if (pageNumber === 4)                    progressStep = 3;
-  else if (pageNumber === 5)                    progressStep = 4;
-  else if (pageNumber === 6)                    progressStep = 5;
+  let progressStep = getCurrentProgressStep();
 
   stepsBar.querySelectorAll(".step-item").forEach(item => {
     const itemStep = parseInt(item.dataset.step, 10);
@@ -57,25 +104,22 @@ function showPage(pageNumber) {
     else if (itemStep === progressStep) item.classList.add("active");
   });
 
-  // Ajuste la largeur du conteneur selon l'étape
   if (progressStep < 3) {
     stepsBar.classList.replace("step-wide","step-narrow");
-    formContainer.style.maxWidth = "500px";
   } else {
     stepsBar.classList.replace("step-narrow","step-wide");
-    formContainer.style.maxWidth = "900px";
   }
 
+  // Ajustons la largeur du formulaire après changement de page
+  adjustFormWidth();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Passe à la page indiquée
 function goToPage(pageNumber) {
   currentPage = pageNumber;
   showPage(pageNumber);
 }
 
-// Initialisation au chargement du DOM
 document.addEventListener("DOMContentLoaded", () => {
   showPage(currentPage);
   preloadImage();
@@ -84,6 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
     addressImage.classList.add("loaded");
     imagePlaceholder.style.display = "none";
   }
+  
+  // Écouteur pour redimensionner le formulaire lors du changement de taille fenêtre
+  window.addEventListener('resize', adjustFormWidth);
 });
 
 // --------------------------------------
@@ -91,52 +138,50 @@ document.addEventListener("DOMContentLoaded", () => {
 // --------------------------------------
 
 // Étape 1 : email + téléphone
-const btnStep1 = document.getElementById("btn-step1");
-const email    = document.getElementById("email");
-const phone    = document.getElementById("telephone");
-const errEmail = document.getElementById("error-email");
-const errPhone = document.getElementById("error-telephone");
+const btnStep1   = document.getElementById("btn-step1");
+const emailField = document.getElementById("email");
+const phoneField = document.getElementById("telephone");
+const errEmail   = document.getElementById("error-email");
+const errPhone   = document.getElementById("error-telephone");
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 btnStep1.addEventListener("click", () => {
-  // Réinitialise les erreurs
-  [errEmail, errPhone].forEach(e => {
-    e.classList.remove("visible");
-    e.textContent = "";
-  });
+  [errEmail, errPhone].forEach(e => { e.classList.remove("visible"); e.textContent = ""; });
   let valid = true;
 
-  const eVal = email.value.trim();
+  const eVal = emailField.value.trim();
   if (!eVal) {
     errEmail.textContent = "Ce champ est requis";
     errEmail.classList.add("visible");
-    email.style.borderColor = "#e74c3c";
+    emailField.style.borderColor = "#e74c3c";
     valid = false;
   } else if (!emailRegex.test(eVal)) {
     errEmail.textContent = "Adresse e-mail invalide";
     errEmail.classList.add("visible");
-    email.style.borderColor = "#e74c3c";
+    emailField.style.borderColor = "#e74c3c";
     valid = false;
   } else {
-    email.style.borderColor = "#ccc";
+    emailField.style.borderColor = "#ccc";
   }
 
-  const pVal = phone.value.trim();
+  const pVal = phoneField.value.trim();
   if (!pVal) {
     errPhone.textContent = "Ce champ est requis";
     errPhone.classList.add("visible");
-    phone.style.borderColor = "#e74c3c";
+    phoneField.style.borderColor = "#e74c3c";
     valid = false;
   } else {
-    phone.style.borderColor = "#ccc";
+    phoneField.style.borderColor = "#ccc";
   }
 
-  if (valid) goToPage(2);
+  if (valid) {
+    userEmail = eVal;
+    goToPage(2);
+  }
 });
 
-// Étape 2 : passage direct à 3 (pas de champ à valider ici)
-const btnStep2 = document.getElementById("btn-step2-part1");
-btnStep2.addEventListener("click", () => goToPage(3));
+// Étape 2 → 3
+document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
 const btnStep3        = document.getElementById("btn-step3");
@@ -151,20 +196,14 @@ const errNomSoc       = document.getElementById("error-nomsociete");
 const errSocCree      = document.getElementById("error-soccree");
 const errSiren        = document.getElementById("error-siren");
 
-// Affiche le message micro-entreprise
 formeJuridique.addEventListener("change", () => {
-  microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
+  microMsg.style.display = (formeJuridique.value === "Micro‑entreprise") ? "block" : "none";
 });
 
 btnStep3.addEventListener("click", () => {
-  // Réinitialise les erreurs
-  [errForme, errNomSoc, errSocCree, errSiren].forEach(e => {
-    e.classList.remove("visible");
-    e.textContent = "";
-  });
+  [errForme, errNomSoc, errSocCree, errSiren].forEach(e => { e.classList.remove("visible"); e.textContent = ""; });
   let valid = true;
 
-  // Forme juridique
   if (!formeJuridique.value) {
     errForme.textContent = "Ce champ est requis";
     errForme.classList.add("visible");
@@ -174,7 +213,6 @@ btnStep3.addEventListener("click", () => {
     formeJuridique.style.borderColor = "#ccc";
   }
 
-  // Nom société
   if (!nomSociete.value.trim()) {
     errNomSoc.textContent = "Ce champ est requis";
     errNomSoc.classList.add("visible");
@@ -184,7 +222,6 @@ btnStep3.addEventListener("click", () => {
     nomSociete.style.borderColor = "#ccc";
   }
 
-  // Société créée
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
     errSocCree.textContent = "Ce champ est requis";
@@ -192,7 +229,6 @@ btnStep3.addEventListener("click", () => {
     valid = false;
   }
 
-  // Numéro SIREN si nécessaire
   if (chosen === "oui" && !numSiren.value.trim()) {
     errSiren.textContent = "Ce champ est requis";
     errSiren.classList.add("visible");
@@ -205,7 +241,6 @@ btnStep3.addEventListener("click", () => {
   if (valid) goToPage(4);
 });
 
-// Affiche/masque le champ SIREN
 radiosSocCree.forEach(radio => {
   radio.addEventListener("change", () => {
     sirenField.style.display = (radio.value === "oui" && radio.checked) ? "block" : "none";
@@ -213,9 +248,9 @@ radiosSocCree.forEach(radio => {
 });
 
 // Étape 4 : adresse de réexpédition
-const btnStep4         = document.getElementById("btn-step4");
+const btnStep4          = document.getElementById("btn-step4");
 const adressePrincipale = document.getElementById("adresse-principale");
-const errAdresse       = document.getElementById("error-message-adresse");
+const errAdresse        = document.getElementById("error-message-adresse");
 
 btnStep4.addEventListener("click", () => {
   let valid = true;
@@ -231,7 +266,7 @@ btnStep4.addEventListener("click", () => {
   if (valid) goToPage(5);
 });
 
-// Sélection de la fréquence (page 5)
+// Sélection fréquence page 5
 const paymentOptions = document.querySelectorAll("#payment-options-container .frequency-option");
 paymentOptions.forEach(opt => {
   opt.addEventListener("click", function() {
@@ -245,18 +280,17 @@ paymentOptions.forEach(opt => {
 
     document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
     document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText        = parseFloat(ht ).toFixed(2).replace(".",",")+" €";
-    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".",",")+" €";
+    document.getElementById("total-ht-final").innerText        = parseFloat(ht).toFixed(2).replace(".", ",") + " €";
+    document.getElementById("total-ttc-final").innerText       = parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
-      parseFloat(ht).toFixed(2).replace(".",",")+" €";
+      parseFloat(ht).toFixed(2).replace(".", ",") + " €";
   });
 });
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE
+// 3) INTÉGRATION STRIPE (mode TEST) + WEBHOOKS
 // --------------------------------------
-
-const stripe   = Stripe("pk_live_51QfLJMLEm2PALFULUxOdeLv5wodbKbxcGyNSg7Y8wxWAowohqOnxptD1mVIXwhYR6rjfanEOhEbYTcwHfKF1OhQL00qjGfTbhx");
+const stripe   = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
 const elements = stripe.elements();
 const style    = {
   base: {
@@ -284,6 +318,7 @@ cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
 document.getElementById("btn-step5").addEventListener("click", async () => {
+  // 1) Création du token Stripe
   const country = document.getElementById("card-country").value || "FR";
   const { token, error } = await stripe.createToken(cardNumber, {
     name: "Nom Sur La Carte",
@@ -294,26 +329,56 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     return;
   }
 
-  const plan        = document.querySelector(".frequency-option.selected").dataset.paymentPriceHt === "15.00" ? "mensuel" : "annuel";
-  const clientEmail = document.getElementById("email").value;
+  // 2) Récupère l'ID du tarif sélectionné + type d'abonnement
+  const selectedElem = document.querySelector("#payment-options-container .frequency-option.selected");
+  const priceId      = selectedElem.dataset.priceId;
+  const clientEmail  = userEmail;
+  const freqText     = selectedElem.querySelector('.frequency-title').innerText.toLowerCase();
+  const abonnement   = freqText.includes('annuel') ? 'Annuelle' : 'Mensuelle';
 
   try {
-    const res = await fetch("https://domiciliation-form-production.up.railway.app/create-subscription", {
+    // 3) Crée la souscription Stripe
+    const res  = await fetch("/api/create-subscription", {
       method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ stripeToken: token.id, plan, email: clientEmail })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stripeToken: token.id, priceId, email: clientEmail })
     });
     const data = await res.json();
+    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
 
-    if (data.subscription?.status === "active") {
-      goToPage(6);
-      document.getElementById("conf-sub-id").innerText   = data.subscription.id;
-      document.getElementById("conf-next-bill").innerText =
-        new Date(data.subscription.current_period_end*1000).toLocaleDateString();
-    } else {
-      throw new Error(data.error || `status ${data.subscription.status}`);
-    }
+    // 4) Confirme le paiement (3D Secure)
+    const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
+    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
+
+    // 5) Passe à l'étape 6 + affiche loader
+    goToPage(6);
+    document.getElementById("contract-loader").style.display   = "block";
+    document.getElementById("contract-preview").style.display = "none";
+
+    // 6) Prépare le payload complet
+    const payload = {
+      subscriptionId:    data.subscriptionId,
+      email:             document.getElementById("email").value.trim(),
+      telephone:         document.getElementById("telephone").value.trim(),
+      formeJuridique:    document.getElementById("forme-juridique").value,
+      nomSociete:        document.getElementById("nom-societe").value.trim(),
+      societeCree:       document.querySelector("input[name='societe-cree']:checked")?.value || "",
+      numSiren:          document.getElementById("num-siren").value.trim(),
+      adresseReexp:      document.getElementById("adresse-principale").value.trim(),
+      complementAdresse: document.getElementById("complement-adresse").value.trim(),
+      priceId,
+      abonnement         // ← ajouté ici
+    };
+
+    // 7) Envoie vers Make et récupère pdf_url & sign_url
+    const { pdf_url, sign_url } = await triggerMakeWebhook(payload);
+
+    // 8) Masque loader, injecte PDF et configure le bouton signer
+    document.getElementById("contract-loader").style.display   = "none";
+    if (pdf_url)  document.getElementById("contract-iframe").src = pdf_url;
+    if (sign_url) document.getElementById("btn-sign").onclick     = () => window.location.href = sign_url;
+    document.getElementById("contract-preview").style.display     = "block";
   } catch (err) {
-    alert(`Erreur paiement : ${err.message}`);
+    alert(`Erreur Make : ${err.message}`);
   }
 });
