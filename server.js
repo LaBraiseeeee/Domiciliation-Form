@@ -1,12 +1,10 @@
 // server.js
 require('dotenv').config(); // charge .env
-
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
 const app = express();
 
 // 🚨 Affiche la VALEUR brute de tes ENV pour debug
@@ -22,7 +20,6 @@ app.post(
   (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
-
     try {
       event = stripeLib.webhooks.constructEvent(
         req.body,
@@ -31,9 +28,8 @@ app.post(
       );
     } catch (err) {
       console.error('⚠️ Webhook signature invalid:', err.message);
-      return res.status(400).send(Webhook Error: ${err.message});
+      return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-
     // Traite les events utiles
     switch (event.type) {
       case 'invoice.payment_succeeded':
@@ -45,7 +41,6 @@ app.post(
       default:
         console.log('ℹ️ Événement non géré :', event.type);
     }
-
     res.json({ received: true });
   }
 );
@@ -68,45 +63,43 @@ app.use(
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 4) ROUTES API
-
 // healthcheck
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
-// création d’abonnement avec SCA
+// création d'abonnement avec SCA
 app.post('/api/create-subscription', async (req, res) => {
   console.log('📥 Payload /create-subscription:', req.body);
-
   const { stripeToken, priceId, email } = req.body;
-
+  
   if (!stripeToken || !priceId || !email) {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
-
+  
   const allowed = [
     process.env.PRICE_ID_MENSUEL,
     process.env.PRICE_ID_ANNUEL
   ];
+  
   if (!allowed.includes(priceId)) {
     return res.status(400).json({ error: 'priceId invalide ou non configuré.' });
   }
-
+  
   try {
     const customer = await stripeLib.customers.create({
       email,
       source: stripeToken
     });
-
+    
     const subscription = await stripeLib.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent']
     });
-
+    
     const pi = subscription.latest_invoice.payment_intent;
-
     res.json({
       subscriptionId: subscription.id,
       clientSecret: pi.client_secret,
@@ -126,5 +119,5 @@ app.get('*', (req, res) => {
 // 6) Démarrage du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(🚀 Serveur lancé sur le port ${PORT});
+  console.log(`🚀 Serveur lancé sur le port ${PORT}`);
 });
