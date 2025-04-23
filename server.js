@@ -4,16 +4,19 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const axios = require('axios');                                // ← IMPORT d'axios pour l’API eSignatures
 const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 
-// 🚨 Affiche la VALEUR brute de tes ENV pour debug
+// 🚨 DEBUG ENV
 console.log('▶️ STRIPE_SECRET_KEY     =', process.env.STRIPE_SECRET_KEY);
 console.log('▶️ STRIPE_WEBHOOK_SECRET =', process.env.STRIPE_WEBHOOK_SECRET);
 console.log('▶️ PRICE_ID_MENSUEL      =', process.env.PRICE_ID_MENSUEL);
 console.log('▶️ PRICE_ID_ANNUEL       =', process.env.PRICE_ID_ANNUEL);
+console.log('▶️ ESIG_TEMPLATE_ID      =', process.env.ESIG_TEMPLATE_ID); // ← DEBUG ESIG
+console.log('▶️ ESIG_TOKEN            =', process.env.ESIG_TOKEN);       // ← DEBUG ESIG
 
-// 1) ROUTE WEBHOOK (body brut pour vérifier la signature)
+// 1) ROUTE WEBHOOK Stripe (body brut pour vérifier la signature)
 app.post(
   '/webhook',
   bodyParser.raw({ type: 'application/json' }),
@@ -45,10 +48,10 @@ app.post(
   }
 );
 
-// 2) JSON parser pour le reste
+// 2) JSON parser pour le reste des routes API
 app.use(express.json());
 
-// 2b) PROXY n8n local → toutes les requêtes /webhook-test passent vers localhost:5678
+// 2b) PROXY n8n local → /webhook-test → localhost:5678
 app.use(
   '/webhook-test',
   createProxyMiddleware({
@@ -59,10 +62,8 @@ app.use(
   })
 );
 
-// 3) Sert tes fichiers statiques (public/index.html, css/, js/)
-app.use(express.static(path.join(__dirname, 'public')));
+// 3) ROUTES API EXISTANTES
 
-// 4) ROUTES API
 // healthcheck
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
@@ -72,33 +73,21 @@ app.get('/api/health', (req, res) => {
 app.post('/api/create-subscription', async (req, res) => {
   console.log('📥 Payload /create-subscription:', req.body);
   const { stripeToken, priceId, email } = req.body;
-  
   if (!stripeToken || !priceId || !email) {
     return res.status(400).json({ error: 'Paramètres manquants.' });
   }
-  
-  const allowed = [
-    process.env.PRICE_ID_MENSUEL,
-    process.env.PRICE_ID_ANNUEL
-  ];
-  
+  const allowed = [process.env.PRICE_ID_MENSUEL, process.env.PRICE_ID_ANNUEL];
   if (!allowed.includes(priceId)) {
     return res.status(400).json({ error: 'priceId invalide ou non configuré.' });
   }
-  
   try {
-    const customer = await stripeLib.customers.create({
-      email,
-      source: stripeToken
-    });
-    
+    const customer = await stripeLib.customers.create({ email, source: stripeToken });
     const subscription = await stripeLib.subscriptions.create({
       customer: customer.id,
       items: [{ price: priceId }],
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent']
     });
-    
     const pi = subscription.latest_invoice.payment_intent;
     res.json({
       subscriptionId: subscription.id,
@@ -110,6 +99,66 @@ app.post('/api/create-subscription', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ─── NOUVELLE ROUTE POUR eSignature ───
+app.post('/api/prepare-esignature', async (req, res) => {
+  const {
+    subscriptionId, email, telephone,
+    formeJuridique, nomSociete, societeCree,
+    numSiren, adresseReexp, complementAdresse,
+    priceId, abonnement
+  } = req.body;
+
+  const templateId = process.env.ESIG_TEMPLATE_ID;
+  const token      = process.env.ESIG_TOKEN;
+  if (!templateId || !token) {
+    return res.status(500).json({ error: 'Variables d’environnement ESIG manquantes.' });
+  }
+
+  try {
+    const esigRes = await axios.post(
+      'https://api.esignatures.com/v1/signature_requests',
+      {
+        template_id: templateId,
+        signers: [{
+          email,
+          name: nomSociete,
+          role: 'Client'
+        }],
+        custom_fields: {
+          subscriptionId,
+          telephone,
+          formeJuridique,
+          societeCree,
+          numSiren,
+          adresseReexp,
+          complementAdresse,
+          priceId,
+          abonnement
+        }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type':  'application/json'
+        }
+      }
+    );
+
+    const data = esigRes.data;
+    res.json({
+      pdf_url:  data.pdf_url,
+      sign_url: data.sign_url
+    });
+  } catch (err) {
+    console.error('❌ eSignature API error:', err.response?.data || err.message);
+    const status = err.response?.status || 500;
+    res.status(status).json({ error: err.response?.data || err.message });
+  }
+});
+
+// 4) Sert tes fichiers statiques (public/)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 5) Fallback SPA : toutes les routes non-API redirigent vers index.html
 app.get('*', (req, res) => {
