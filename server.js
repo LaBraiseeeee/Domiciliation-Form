@@ -1,11 +1,13 @@
 // server.js
 require('dotenv').config(); // charge .env
+
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const fetch = require('node-fetch');                       // ← on utilise node-fetch, plus besoin d'axios
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const axios = require('axios');                                // ← IMPORT d'axios pour l’API eSignatures
 const stripeLib = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const app = express();
 
 // 🚨 DEBUG ENV
@@ -13,8 +15,8 @@ console.log('▶️ STRIPE_SECRET_KEY     =', process.env.STRIPE_SECRET_KEY);
 console.log('▶️ STRIPE_WEBHOOK_SECRET =', process.env.STRIPE_WEBHOOK_SECRET);
 console.log('▶️ PRICE_ID_MENSUEL      =', process.env.PRICE_ID_MENSUEL);
 console.log('▶️ PRICE_ID_ANNUEL       =', process.env.PRICE_ID_ANNUEL);
-console.log('▶️ ESIG_TEMPLATE_ID      =', process.env.ESIG_TEMPLATE_ID); // ← DEBUG ESIG
-console.log('▶️ ESIG_TOKEN            =', process.env.ESIG_TOKEN);       // ← DEBUG ESIG
+console.log('▶️ ESIG_TEMPLATE_ID      =', process.env.ESIG_TEMPLATE_ID);
+console.log('▶️ ESIG_TOKEN            =', process.env.ESIG_TOKEN);
 
 // 1) ROUTE WEBHOOK Stripe (body brut pour vérifier la signature)
 app.post(
@@ -33,7 +35,6 @@ app.post(
       console.error('⚠️ Webhook signature invalid:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-    // Traite les events utiles
     switch (event.type) {
       case 'invoice.payment_succeeded':
         console.log('✅ Paiement OK pour subscription', event.data.object.subscription);
@@ -62,7 +63,7 @@ app.use(
   })
 );
 
-// 3) ROUTES API EXISTANTES
+// 3) ROUTES API
 
 // healthcheck
 app.get('/api/health', (req, res) => {
@@ -100,60 +101,41 @@ app.post('/api/create-subscription', async (req, res) => {
   }
 });
 
-// ─── NOUVELLE ROUTE POUR eSignature ───
-app.post('/api/prepare-esignature', async (req, res) => {
-  const {
-    subscriptionId, email, telephone,
-    formeJuridique, nomSociete, societeCree,
-    numSiren, adresseReexp, complementAdresse,
-    priceId, abonnement
-  } = req.body;
-
-  const templateId = process.env.ESIG_TEMPLATE_ID;
+// ─── ROUTE POUR eSignature via node-fetch ───
+app.post('/api/create-contract', async (req, res) => {
+  const { nomSociete, email, subscriptionId, abonnement } = req.body;
   const token      = process.env.ESIG_TOKEN;
-  if (!templateId || !token) {
+  const templateId = process.env.ESIG_TEMPLATE_ID;
+
+  if (!token || !templateId) {
     return res.status(500).json({ error: 'Variables d’environnement ESIG manquantes.' });
   }
 
   try {
-    const esigRes = await axios.post(
-      'https://api.esignatures.com/v1/signature_requests',
-      {
+    // appelle l'API eSignatures.com en sandbox (test mode)
+    const apiRes = await fetch(`https://esignatures.com/api/contracts?token=${token}`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         template_id: templateId,
+        test:        'yes',
         signers: [{
-          email,
           name: nomSociete,
-          role: 'Client'
-        }],
-        custom_fields: {
-          subscriptionId,
-          telephone,
-          formeJuridique,
-          societeCree,
-          numSiren,
-          adresseReexp,
-          complementAdresse,
-          priceId,
-          abonnement
-        }
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type':  'application/json'
-        }
-      }
-    );
-
-    const data = esigRes.data;
+          email,
+          redirect_url: 'https://ton-site.com/merci'
+        }]
+      })
+    });
+    if (!apiRes.ok) throw new Error(`eSignatures API status ${apiRes.status}`);
+    const json = await apiRes.json();
+    const contract = json.data.contract;
     res.json({
-      pdf_url:  data.pdf_url,
-      sign_url: data.sign_url
+      pdf_url:  contract.pdf_url,
+      sign_url: contract.signers[0].sign_page_url
     });
   } catch (err) {
-    console.error('❌ eSignature API error:', err.response?.data || err.message);
-    const status = err.response?.status || 500;
-    res.status(status).json({ error: err.response?.data || err.message });
+    console.error('❌ eSignature API error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
