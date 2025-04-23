@@ -43,25 +43,25 @@ function isImageCached(src) {
   return img.complete;
 }
 
-function showPage(page) {
-  formSteps.forEach(step => {
-    step.classList.toggle("active", parseInt(step.dataset.page,10) === page);
+function showPage(pageNumber) {
+  formSteps.forEach(page => {
+    page.classList.toggle("active", parseInt(page.dataset.page, 10) === pageNumber);
   });
 
-  let progress = page === 1 ? 1
-                : page <= 3 ? 2
-                : page === 4 ? 3
-                : page === 5 ? 4
-                : 5;
+  let progressStep = pageNumber === 1 ? 1
+                    : pageNumber <= 3 ? 2
+                    : pageNumber === 4 ? 3
+                    : pageNumber === 5 ? 4
+                    : 5;
 
   stepsBar.querySelectorAll(".step-item").forEach(item => {
-    const s = parseInt(item.dataset.step,10);
+    const step = parseInt(item.dataset.step, 10);
     item.classList.remove("active","completed");
-    if (s < progress)   item.classList.add("completed");
-    else if (s === progress) item.classList.add("active");
+    if (step < progressStep)   item.classList.add("completed");
+    else if (step === progressStep) item.classList.add("active");
   });
 
-  if (progress < 3) {
+  if (progressStep < 3) {
     stepsBar.classList.replace("step-wide","step-narrow");
     formContainer.style.maxWidth = "500px";
   } else {
@@ -71,9 +71,9 @@ function showPage(page) {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-function goToPage(page) {
-  currentPage = page;
-  showPage(page);
+function goToPage(pageNumber) {
+  currentPage = pageNumber;
+  showPage(pageNumber);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -95,28 +95,33 @@ const emailField = document.getElementById("email");
 const phoneField = document.getElementById("telephone");
 const errEmail   = document.getElementById("error-email");
 const errPhone   = document.getElementById("error-telephone");
-const emailRe    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 btnStep1.addEventListener("click", () => {
-  errEmail.classList.remove("visible"); errEmail.textContent = "";
-  errPhone.classList.remove("visible"); errPhone.textContent = "";
+  [errEmail, errPhone].forEach(e => { e.classList.remove("visible"); e.textContent = ""; });
   let valid = true;
 
   const eVal = emailField.value.trim();
   if (!eVal) {
-    errEmail.textContent = "Ce champ est requis"; errEmail.classList.add("visible");
-    emailField.style.borderColor = "#e74c3c"; valid = false;
-  } else if (!emailRe.test(eVal)) {
-    errEmail.textContent = "Adresse e-mail invalide"; errEmail.classList.add("visible");
-    emailField.style.borderColor = "#e74c3c"; valid = false;
+    errEmail.textContent = "Ce champ est requis";
+    errEmail.classList.add("visible");
+    emailField.style.borderColor = "#e74c3c";
+    valid = false;
+  } else if (!emailRegex.test(eVal)) {
+    errEmail.textContent = "Adresse e-mail invalide";
+    errEmail.classList.add("visible");
+    emailField.style.borderColor = "#e74c3c";
+    valid = false;
   } else {
     emailField.style.borderColor = "#ccc";
   }
 
   const pVal = phoneField.value.trim();
   if (!pVal) {
-    errPhone.textContent = "Ce champ est requis"; errPhone.classList.add("visible");
-    phoneField.style.borderColor = "#e74c3c"; valid = false;
+    errPhone.textContent = "Ce champ est requis";
+    errPhone.classList.add("visible");
+    phoneField.style.borderColor = "#e74c3c";
+    valid = false;
   } else {
     phoneField.style.borderColor = "#ccc";
   }
@@ -131,52 +136,66 @@ btnStep1.addEventListener("click", () => {
 document.getElementById("btn-step2-part1").addEventListener("click", () => goToPage(3));
 
 // Étape 3 : infos société
-const btnStep3       = document.getElementById("btn-step3");
-const formeJ         = document.getElementById("forme-juridique");
-const nomSociete     = document.getElementById("nom-societe");
-const radiosSocCree  = document.getElementsByName("societe-cree");
-const sirenField     = document.getElementById("siren-field");
-const numSiren       = document.getElementById("num-siren");
-const microMsg       = document.getElementById("micro-entreprise-message");
-const errForme       = document.getElementById("error-forme");
-const errNomSoc      = document.getElementById("error-nomsociete");
-const errSocCree     = document.getElementById("error-soccree");
-const errSiren       = document.getElementById("error-siren");
+const btnStep3        = document.getElementById("btn-step3");
+const formeJuridique  = document.getElementById("forme-juridique");
+const nomSociete      = document.getElementById("nom-societe");
+const radiosSocCree   = document.getElementsByName("societe-cree");
+const sirenField      = document.getElementById("siren-field");
+const numSiren        = document.getElementById("num-siren");
+const microMsg        = document.getElementById("micro-entreprise-message");
+const errForme        = document.getElementById("error-forme");
+const errNomSoc       = document.getElementById("error-nomsociete");
+const errSocCree      = document.getElementById("error-soccree");
+const errSiren        = document.getElementById("error-siren");
 
-formeJ.addEventListener("change", () => {
-  microMsg.style.display = formeJ.value === "Micro-entreprise" ? "block" : "none";
+formeJuridique.addEventListener("change", () => {
+  microMsg.style.display = (formeJuridique.value === "Micro-entreprise") ? "block" : "none";
 });
 
 btnStep3.addEventListener("click", () => {
   [errForme, errNomSoc, errSocCree, errSiren].forEach(e => { e.classList.remove("visible"); e.textContent = ""; });
   let valid = true;
 
-  if (!formeJ.value) {
-    errForme.textContent = "Ce champ est requis"; errForme.classList.add("visible");
-    formeJ.style.borderColor = "#e74c3c"; valid = false;
-  } else formeJ.style.borderColor = "#ccc";
+  if (!formeJuridique.value) {
+    errForme.textContent = "Ce champ est requis";
+    errForme.classList.add("visible");
+    formeJuridique.style.borderColor = "#e74c3c";
+    valid = false;
+  } else {
+    formeJuridique.style.borderColor = "#ccc";
+  }
 
   if (!nomSociete.value.trim()) {
-    errNomSoc.textContent = "Ce champ est requis"; errNomSoc.classList.add("visible");
-    nomSociete.style.borderColor = "#e74c3c"; valid = false;
-  } else nomSociete.style.borderColor = "#ccc";
+    errNomSoc.textContent = "Ce champ est requis";
+    errNomSoc.classList.add("visible");
+    nomSociete.style.borderColor = "#e74c3c";
+    valid = false;
+  } else {
+    nomSociete.style.borderColor = "#ccc";
+  }
 
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
-    errSocCree.textContent = "Ce champ est requis"; errSocCree.classList.add("visible"); valid = false;
+    errSocCree.textContent = "Ce champ est requis";
+    errSocCree.classList.add("visible");
+    valid = false;
   }
+
   if (chosen === "oui" && !numSiren.value.trim()) {
-    errSiren.textContent = "Ce champ est requis"; errSiren.classList.add("visible");
-    numSiren.style.borderColor = "#e74c3c"; valid = false;
+    errSiren.textContent = "Ce champ est requis";
+    errSiren.classList.add("visible");
+    numSiren.style.borderColor = "#e74c3c";
+    valid = false;
   } else if (chosen === "oui") {
     numSiren.style.borderColor = "#ccc";
   }
 
   if (valid) goToPage(4);
 });
-radiosSocCree.forEach(r => {
-  r.addEventListener("change", () => {
-    sirenField.style.display = r.checked && r.value === "oui" ? "block" : "none";
+
+radiosSocCree.forEach(radio => {
+  radio.addEventListener("change", () => {
+    sirenField.style.display = (radio.value === "oui" && radio.checked) ? "block" : "none";
   });
 });
 
@@ -186,9 +205,11 @@ const adressePrincipale = document.getElementById("adresse-principale");
 const errAdresse        = document.getElementById("error-message-adresse");
 
 btnStep4.addEventListener("click", () => {
-  errAdresse.classList.remove("visible"); errAdresse.textContent = "";
+  errAdresse.classList.remove("visible");
+  errAdresse.textContent = "";
   if (!adressePrincipale.value.trim()) {
-    errAdresse.textContent = "Ce champ est requis"; errAdresse.classList.add("visible");
+    errAdresse.textContent = "Ce champ est requis";
+    errAdresse.classList.add("visible");
     adressePrincipale.style.borderColor = "#e74c3c";
   } else {
     adressePrincipale.style.borderColor = "#ddd";
@@ -218,7 +239,7 @@ paymentOptions.forEach(opt => {
 });
 
 // --------------------------------------
-// 3) INTÉGRATION STRIPE + eSignatures
+// 3) INTÉGRATION STRIPE (mode TEST) + eSignatures
 // --------------------------------------
 const stripe   = Stripe("pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ");
 const elements = stripe.elements();
@@ -284,7 +305,7 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
     document.getElementById("contract-loader").style.display   = "block";
     document.getElementById("contract-preview").style.display = "none";
 
-    // 6) Prépare et envoie la requête eSignatures
+    // 6) Création du contrat eSignatures
     const { pdf_url, sign_url } = await createContract({
       nomSociete:     document.getElementById("nom-societe").value.trim(),
       email:          userEmail,
