@@ -51,9 +51,9 @@ function adjustFormWidth() {
   } else {
     const step = currentPage === 1 ? 1
                : currentPage <= 3 ? 2
-               : currentPage === 4    ? 3
-               : currentPage === 5    ? 4
-                                      : 5;
+               : currentPage === 4 ? 3
+               : currentPage === 5 ? 4
+                                    : 5;
     formContainer.style.maxWidth = step < 3 ? "500px" : (w < 950 ? "95%" : "900px");
   }
 }
@@ -159,7 +159,7 @@ const numSirenField   = document.getElementById("num-siren");
 const microMsg        = document.getElementById("micro-entreprise-message");
 const errForme        = document.getElementById("error-forme");
 const errNomSoc       = document.getElementById("error-nomsociete");
-const errSocCree      = document.getElementById("error-soccree");
+const errSociCree     = document.getElementById("error-soccree");
 const errSiren        = document.getElementById("error-siren");
 
 formeSelect.addEventListener("change", () => {
@@ -167,7 +167,7 @@ formeSelect.addEventListener("change", () => {
 });
 
 btnStep3.addEventListener("click", () => {
-  [errForme, errNomSoc, errSocCree, errSiren].forEach(e => {
+  [errForme, errNomSoc, errSociCree, errSiren].forEach(e => {
     e.classList.remove("visible");
     e.textContent = "";
   });
@@ -193,8 +193,8 @@ btnStep3.addEventListener("click", () => {
 
   const chosen = Array.from(radiosSocCree).find(r => r.checked)?.value || "";
   if (!chosen) {
-    errSocCree.textContent = "Ce champ est requis";
-    errSocCree.classList.add("visible");
+    errSociCree.textContent = "Ce champ est requis";
+    errSociCree.classList.add("visible");
     valid = false;
   }
   if (chosen === "oui" && !numSirenField.value.trim()) {
@@ -247,9 +247,9 @@ paymentOptions.forEach(opt => {
 
     document.getElementById("total-label-ht-final").innerText  = `TOTAL ${lbl} HT`;
     document.getElementById("total-label-ttc-final").innerText = `TOTAL ${lbl} TTC`;
-    document.getElementById("total-ht-final").innerText        =
+    document.getElementById("total-ht-final").innerText =
       parseFloat(ht).toFixed(2).replace(".", ",") + " €";
-    document.getElementById("total-ttc-final").innerText       =
+    document.getElementById("total-ttc-final").innerText =
       parseFloat(ttc).toFixed(2).replace(".", ",") + " €";
     document.getElementById("recap-domiciliation-final").innerText =
       parseFloat(ht).toFixed(2).replace(".", ",") + " €";
@@ -286,7 +286,7 @@ cardNumber.on("change", handleCardError);
 cardExpiry.on("change", handleCardError);
 cardCvc.on("change", handleCardError);
 
-document.getElementById("btn-step5").addEventListener("click", async () => {
+document.getElementById("btn-step5").addEventListener(" click", async () => {
   // 1) Création du token Stripe
   const country = document.getElementById("card-country").value || "FR";
   const { token, error } = await stripe.createToken(cardNumber, {
@@ -299,9 +299,9 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
   }
 
   // 2) Récupère l’ID du tarif et type d’abonnement
-  const selElem   = document.querySelector("#payment-options-container .frequency-option.selected");
-  const priceId   = selElem.dataset.priceId;
-  const freqText  = selElem.querySelector('.frequency-title').innerText.toLowerCase();
+  const selElem    = document.querySelector("#payment-options-container .frequency-option.selected");
+  const priceId    = selElem.dataset.priceId;
+  const freqText   = selElem.querySelector('.frequency-title').innerText.toLowerCase();
   const abonnement = freqText.includes('annuel') ? 'Annuelle' : 'Mensuelle';
 
   try {
@@ -325,9 +325,9 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
 
     // 6) Création du contrat eSignatures
     const { pdf_url, sign_url } = await createContract({
-      nomSociete:     document.getElementById("nom-societe").value.trim(),
-      email:          userEmail,
       subscriptionId: data.subscriptionId,
+      email:          userEmail,
+      nomSociete:     document.getElementById("nom-societe").value.trim(),
       abonnement
     });
 
@@ -339,5 +339,48 @@ document.getElementById("btn-step5").addEventListener("click", async () => {
 
   } catch (err) {
     alert(`Erreur : ${err.message}`);
+  }
+});
+
+// --------------------------------------
+// 4) BLOCK DE PREVIEW dynamiquement
+//    (ouvre https://.../?preview=test)
+// --------------------------------------
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.location.search.includes('preview=test')) {
+    // 1) Passe à l’étape 6
+    goToPage(6);
+    // 2) Affiche loader, cache preview
+    document.getElementById('contract-loader').style.display   = 'block';
+    document.getElementById('contract-preview').style.display = 'none';
+
+    // 3) Recrée le payload depuis le formulaire
+    const previewPayload = {
+      subscriptionId:    'sub_test_123',
+      email:             document.getElementById('email').value.trim(),
+      telephone:         document.getElementById('telephone').value.trim(),
+      formeJuridique:    document.getElementById('forme-juridique').value,
+      nomSociete:        document.getElementById('nom-societe').value.trim(),
+      societeCree:       document.querySelector("input[name='societe-cree']:checked")?.value || '',
+      numSiren:          document.getElementById('num-siren').value.trim(),
+      adresseReexp:      document.getElementById('adresse-principale').value.trim(),
+      complementAdresse: document.getElementById('complement-adresse').value.trim(),
+      priceId:           document.querySelector('.frequency-option.selected').dataset.priceId,
+      abonnement:        document.querySelector('.frequency-option.selected .frequency-title').innerText
+    };
+
+    try {
+      // 4) Appel preview eSignature
+      const { pdf_url, sign_url } = await createContract(previewPayload);
+
+      // 5) Injecte le PDF généré
+      document.getElementById('contract-loader').style.display   = 'none';
+      document.getElementById('contract-iframe').src            = pdf_url;
+      document.getElementById('btn-sign').onclick               = () => window.location.href = sign_url;
+      document.getElementById('contract-preview').style.display = 'block';
+    } catch (e) {
+      console.error('Preview eSign error:', e);
+      document.getElementById('contract-loader').textContent = 'Erreur de prévisualisation';
+    }
   }
 });
