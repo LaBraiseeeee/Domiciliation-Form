@@ -184,7 +184,7 @@ btnStep1.addEventListener('click', () => {
 document.getElementById('btn-step2-part1')
   .addEventListener('click', () => goToPage(3));
 
-// Étape 3
+// Étape 3 : Infos société
 const btnStep3        = document.getElementById('btn-step3');
 const formeSelect     = document.getElementById('forme-juridique');
 const nomSocieteField = document.getElementById('nom-societe');
@@ -238,7 +238,7 @@ radiosSocCree.forEach(r => {
   });
 });
 
-// Étape 4
+// Étape 4 : Adresse de réexpédition
 const btnStep4  = document.getElementById('btn-step4');
 const addrInput = document.getElementById('adresse-principale');
 const errAddr   = document.getElementById('error-message-adresse');
@@ -276,77 +276,87 @@ paymentOptions.forEach(opt => {
 // --------------------------------------
 // 3) INTÉGRATION STRIPE + eSignatures
 // --------------------------------------
-const stripe   = Stripe('pk_test_51QfLJWPs1z3k...'); // ton clé publique
+const stripe   = Stripe('pk_test_51QfLJWPs1z3kB9qHrbfhmcDseTIn6dvRXJSi71Od69vd1aDEFsb8HWn42gB4gxCdi6DccsccrDXqEvPmiakxdGEQ00OVGdQkcQ');
 const elements = stripe.elements();
 const style    = {
-  base: { color: '#32325d', fontFamily: 'Nunito, sans-serif', fontSize: '16px', '::placeholder': { color: '#ccc' } },
-  invalid: { color: '#e74c3c' }
+  base: {
+    color: "#32325d",
+    fontFamily: "Nunito, sans-serif",
+    fontSize: "16px",
+    "::placeholder": { color: "#ccc" }
+  },
+  invalid: { color: "#e74c3c" }
 };
-const cardNumber = elements.create('cardNumber', { style });
-const cardExpiry = elements.create('cardExpiry', { style });
-const cardCvc    = elements.create('cardCvc',    { style });
-cardNumber.mount('#card-number-element');
-cardExpiry.mount('#card-expiry-element');
-cardCvc.mount('#card-cvc-element');
-cardNumber.on('change', handleCardError);
-cardExpiry.on('change', handleCardError);
-cardCvc.on('change',    handleCardError);
-function handleCardError(e) {
-  document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+
+const cardNumber = elements.create("cardNumber", { style });
+const cardExpiry = elements.create("cardExpiry", { style });
+const cardCvc    = elements.create("cardCvc",    { style });
+
+cardNumber.mount("#card-number-element");
+cardExpiry.mount("#card-expiry-element");
+cardCvc.mount("#card-cvc-element");
+
+function handleCardError(event) {
+  document.getElementById("card-errors").textContent = event.error ? event.error.message : "";
 }
+cardNumber.on("change", handleCardError);
+cardExpiry.on("change", handleCardError);
+cardCvc.on("change", handleCardError);
 
 // --------------------------------------
 // 4) BOUTON PAIEMENT (Étape 5 → 6)
 // --------------------------------------
-document.getElementById('btn-step5').addEventListener('click', async () => {
-  const country = document.getElementById('card-country').value || 'FR';
-  const { token, error } = await stripe.createToken(cardNumber, { name: 'Nom Sur La Carte', address_country: country });
+document.getElementById("btn-step5").addEventListener("click", async () => {
+  const country = document.getElementById("card-country").value || "FR";
+  const { token, error } = await stripe.createToken(cardNumber, {
+    name: "Nom Sur La Carte",
+    address_country: country
+  });
   if (error) {
-    document.getElementById('card-errors').textContent = error.message;
+    document.getElementById("card-errors").textContent = error.message;
     return;
   }
 
-  const sel    = document.querySelector('#payment-options-container .frequency-option.selected');
-  const priceId = sel.dataset.priceId;
-  const freq   = sel.querySelector('.frequency-title').innerText.toLowerCase();
-  const abo    = freq.includes('annuel') ? 'Annuelle' : 'Mensuelle';
+  const selElem    = document.querySelector("#payment-options-container .frequency-option.selected");
+  const priceId    = selElem.dataset.priceId;
+  const freqText   = selElem.querySelector('.frequency-title').innerText.toLowerCase();
+  const abonnement = freqText.includes('annuel') ? 'Annuelle' : 'Mensuelle';
 
   try {
-    const res  = await fetch('/api/create-subscription', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res  = await fetch("/api/create-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stripeToken: token.id, priceId, email: userEmail })
     });
     const data = await res.json();
-    if (!data.clientSecret) throw new Error(data.error || 'Pas de clientSecret renvoyé');
+    if (!data.clientSecret) throw new Error(data.error || "Pas de clientSecret renvoyé");
 
-    const { error: confirmErr } = await stripe.confirmCardPayment(data.clientSecret);
-    if (confirmErr) throw new Error('Erreur 3D Secure : ' + confirmErr.message);
+    const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret);
+    if (confirmError) throw new Error("Erreur 3D Secure : " + confirmError.message);
 
     goToPage(6);
-    document.getElementById('contract-loader').style.display   = 'block';
-    document.getElementById('contract-preview').style.display = 'none';
+    document.getElementById("contract-loader").style.display   = "block";
+    document.getElementById("contract-preview").style.display = "none";
 
     const { pdf_url, sign_url } = await createContract({
       subscriptionId:     data.subscriptionId,
       email:              userEmail,
-      nomSociete:         'Bastien',
-      abonnement:         abo,
+      nomSociete:         "Bastien",
+      abonnement,
       placeholder_fields: [],
       signer_fields:      [],
-      test:               'yes'
+      test:               "yes"
     });
 
-    document.getElementById('contract-loader').style.display   = 'none';
-    document.getElementById('contract-iframe').src            = pdf_url;
-    document.getElementById('btn-sign').onclick               = () => window.location.href = sign_url;
-    document.getElementById('contract-preview').style.display = 'block';
+    document.getElementById("contract-loader").style.display   = "none";
+    document.getElementById("contract-iframe").src            = pdf_url;
+    document.getElementById("btn-sign").onclick               = () => window.location.href = sign_url;
+    document.getElementById("contract-preview").style.display = "block";
 
     document.getElementById('conf-sub-id').textContent    = data.subscriptionId;
-    document.getElementById('conf-next-bill').textContent = abo === 'Mensuelle'
-      ? new Date(new Date().setMonth(new Date().getMonth()+1)).toLocaleDateString('fr-FR')
-      : new Date(new Date().setFullYear(new Date().getFullYear()+1)).toLocaleDateString('fr-FR');
-
+    document.getElementById('conf-next-bill').textContent = abonnement === 'Mensuelle'
+      ? new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString('fr-FR')
+      : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('fr-FR');
   } catch (err) {
     alert(`Erreur : ${err.message}`);
   }
