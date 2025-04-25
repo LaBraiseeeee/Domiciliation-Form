@@ -68,10 +68,12 @@
             <div class="input-container">
               <i class="fa-solid fa-envelope input-icon"></i>
               <input
-                type="text"
-                id="email"
+                type="email"
+                id="clientEmail"
+                name="email"
                 class="form-control"
                 placeholder="Votre email"
+                required
               />
             </div>
             <div class="error-wrap">
@@ -96,8 +98,7 @@
             <button type="button" class="btn" id="btn-step1">COMMENCER</button>
           </div>
           <p class="info-text">
-            Vos informations sont privées et ne seront pas transmises à des
-            tiers
+            Vos informations sont privées et ne seront pas transmises à des tiers
           </p>
         </div>
 
@@ -117,20 +118,11 @@
               class="address-image"
             />
           </div>
-          <div
-            class="btn-center"
-            style="display:flex; justify-content:flex-end; margin-top:20px;"
-          >
-            <button
-              type="button"
-              class="btn-secondary btn"
-              onclick="goToPage(1)"
-            >
+          <div class="btn-center" style="display:flex; justify-content:flex-end; margin-top:20px;">
+            <button type="button" class="btn-secondary btn" onclick="goToPage(1)">
               Précédent
             </button>
-            <button type="button" class="btn" id="btn-step2-part1">
-              SUIVANT
-            </button>
+            <button type="button" class="btn" id="btn-step2-part1">SUIVANT</button>
           </div>
         </div>
 
@@ -164,19 +156,17 @@
                 <i class="fa-solid fa-building input-icon"></i>
                 <input
                   type="text"
-                  id="nom-societe"
+                  id="companyName"
+                  name="company"
                   class="form-control"
                   placeholder="Nom de votre société"
+                  required
                 />
               </div>
               <div class="error-wrap">
                 <span class="error-message" id="error-nomsociete"></span>
               </div>
-              <div
-                id="micro-entreprise-message"
-                class="micro-entreprise-message"
-                style="display:none;"
-              >
+              <div id="micro-entreprise-message" class="micro-entreprise-message" style="display:none;">
                 Pour une micro-entreprise, votre société s’appelle Prénom Nom.
               </div>
             </div>
@@ -199,11 +189,7 @@
                 <span class="error-message" id="error-soccree"></span>
               </div>
             </div>
-            <div
-              class="form-group"
-              id="siren-field"
-              style="display:none; margin-top:10px;"
-            >
+            <div class="form-group" id="siren-field" style="display:none; margin-top:10px;">
               <div class="input-container">
                 <i class="fa-solid fa-id-card input-icon"></i>
                 <input
@@ -218,15 +204,8 @@
               </div>
             </div>
           </div>
-          <div
-            class="btn-center"
-            style="display:flex; justify-content:flex-end; margin-top:20px;"
-          >
-            <button
-              type="button"
-              class="btn-secondary btn"
-              onclick="goToPage(2)"
-            >
+          <div class="btn-center" style="display:flex; justify-content:flex-end; margin-top:20px;">
+            <button type="button" class="btn-secondary btn" onclick="goToPage(2)">
               Précédent
             </button>
             <button type="button" class="btn" id="btn-step3">SUIVANT</button>
@@ -238,9 +217,7 @@
           <div class="options-container">
             <div class="options-left-column">
               <div class="options-block">
-                <label class="options-label"
-                  >Adresse de réexpédition du courrier</label
-                >
+                <label class="options-label">Adresse de réexpédition du courrier</label>
                 <input
                   type="text"
                   id="adresse-principale"
@@ -259,8 +236,7 @@
                 <label class="options-label">Fréquence de réexpédition</label>
                 <div class="frequency-option selected">
                   <div class="frequency-title">
-                    Scan numérique (mensuel) et réexpédition mensuelle sur
-                    demande
+                    Scan numérique (mensuel) et réexpédition mensuelle sur demande
                   </div>
                   <div class="frequency-features">
                     <div class="frequency-feature">
@@ -328,7 +304,7 @@
               <!-- Option Annuelle -->
               <div
                 class="frequency-option"
-                data-payment-price-ht="150.00"   
+                data-payment-price-ht="150.00"
                 data-payment-price-ttc="180.00"
                 data-price-id="price_1RFAK5Ps1z3kB9qH13xyxMZr"
               >
@@ -381,7 +357,7 @@
                 </div>
               </div>
               <div class="button-center">
-                <button type="button" id="btn-step5" class="options-button">
+                <button type="button" id="payButton" class="options-button">
                   PAIEMENT
                 </button>
               </div>
@@ -389,7 +365,7 @@
           </div>
         </div>
 
-        <!-- Étape 6 : Confirmation -->
+        <!-- Étape 6 : Confirmation & Contrat -->
         <div class="form-step" data-page="6">
           <h2>Paiement réussi !</h2>
           <p>Voici les informations qui t'intéressent :</p>
@@ -403,38 +379,30 @@
             Chargement du contrat…
           </div>
 
-          <!-- Preview du contrat + bouton signer -->
-          <div id="contract-preview" style="display:none; text-align:center; margin-top:20px;">
+          <!-- Iframe de prévisualisation et signature -->
+          <div id="contractStep" style="display:none; text-align:center; margin-top:20px;">
             <iframe
-              id="contract-iframe"
+              id="contractIframe"
               style="width:100%; height:500px; border:none;"
-              title="Aperçu du contrat">
+              title="Contrat à signer">
             </iframe>
-            <button id="btn-sign" class="btn" style="margin-top:15px;">
-              Signer le contrat
-            </button>
           </div>
         </div>
-
       </form>
     </div>
   </div>
 
-  <!-- Votre unique bundle JS -->
+  <!-- Votre bundle JS -->
   <script src="js/script.js" defer></script>
 
-  <!-- ▶ Script de prévisualisation rapide (ouvrir avec ?preview) -->
+  <!-- ▶ Aperçu rapide en mode preview -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.location.search.includes('preview')) {
-        // Passe directement à l'étape 6
         goToPage(6);
-        // Cache le loader
         document.getElementById('contract-loader').style.display = 'none';
-        // Injecte ici ton URL de contrat (remplace par celle de ton API)
-        document.getElementById('contract-iframe').src = 'https://ton-domaine.com/ton-contrat.pdf';
-        // Affiche l'aperçu
-        document.getElementById('contract-preview').style.display = 'block';
+        document.getElementById('contractIframe').src = 'https://ton-domaine.com/ton-contrat.pdf';
+        document.getElementById('contractStep').style.display = 'block';
       }
     });
   </script>
